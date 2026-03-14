@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UniVault Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ══ SAME COLOUR PALETTE as student site ══ */
+:root{
+  --c1:#355872;--c2:#7AAACE;--c3:#9CD5FF;--c4:#F7F8F0;
+  --c1d:#243e52;--shadow:0 8px 32px rgba(53,88,114,.18);
+  --radius:16px;--t:0.36s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--c4);color:var(--c1);min-height:100vh;}
+
+/* ══ LOGIN SCREEN ══ */
+#loginScreen{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--c1d) 0%,var(--c1) 55%,var(--c2) 100%);
+  position:relative;overflow:hidden;
+}
+#loginScreen::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239CD5FF' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none;
+}
+.login-box{
+  background:rgba(247,248,240,.96);
+  border-radius:20px;
+  padding:2.8rem 2.5rem;
+  width:min(420px,95vw);
+  box-shadow:0 24px 64px rgba(26,46,59,.35);
+  position:relative;z-index:1;
+  animation:popIn .4s cubic-bezier(.4,0,.2,1);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.92) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.login-logo{
+  font-family:'Playfair Display',serif;
+  font-size:1.8rem;font-weight:900;
+  color:var(--c1);text-align:center;
+  margin-bottom:.3rem;
+}
+.login-logo span{color:var(--c2);}
+.login-sub{text-align:center;font-size:.82rem;color:#6b8499;margin-bottom:2rem;}
+.login-label{font-size:.82rem;font-weight:600;color:var(--c1);display:block;margin-bottom:.4rem;}
+.login-input{
+  width:100%;padding:.75rem 1rem;
+  border:1.5px solid rgba(53,88,114,.18);
+  border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:.92rem;color:var(--c1);
+  background:white;outline:none;margin-bottom:1.2rem;
+  transition:border-color .2s;
+}
+.login-input:focus{border-color:var(--c2);}
+.login-btn{
+  width:100%;padding:.85rem;
+  background:var(--c1);color:var(--c4);
+  font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:600;
+  border:none;border-radius:10px;cursor:pointer;
+  transition:background var(--t),transform .15s;
+  letter-spacing:.02em;
+}
+.login-btn:hover{background:var(--c2);transform:scale(1.02);}
+.login-err{
+  background:rgba(220,60,60,.1);border:1px solid rgba(220,60,60,.3);
+  color:#8b2020;font-size:.82rem;
+  padding:.6rem 1rem;border-radius:8px;
+  margin-bottom:1rem;display:none;text-align:center;
+}
+.login-err.show{display:block;}
+
+/* ══ ADMIN PANEL ══ */
+#adminPanel{display:none;}
+
+/* Top bar */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  background:var(--c1);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2rem;height:60px;
+  box-shadow:0 2px 16px rgba(53,88,114,.28);
+}
+.topbar-logo{
+  font-family:'Playfair Display',serif;
+  font-size:1.3rem;font-weight:900;color:var(--c4);
+  display:flex;align-items:center;gap:.5rem;
+}
+.topbar-logo span{color:var(--c3);}
+.topbar-badge{
+  background:rgba(156,213,255,.2);border:1px solid rgba(156,213,255,.3);
+  color:var(--c3);font-size:.68rem;font-weight:700;letter-spacing:.08em;
+  padding:.2rem .7rem;border-radius:50px;text-transform:uppercase;
+  margin-left:.5rem;
+}
+.logout-btn{
+  background:rgba(247,248,240,.12);border:1px solid rgba(247,248,240,.22);
+  color:var(--c4);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;
+  padding:.38rem .9rem;border-radius:8px;cursor:pointer;
+  transition:background var(--t);
+}
+.logout-btn:hover{background:rgba(247,248,240,.22);}
+
+/* Layout */
+.admin-body{
+  max-width:1100px;margin:0 auto;
+  padding:2.5rem 2rem;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:2rem;
+}
+@media(max-width:720px){.admin-body{grid-template-columns:1fr;}}
+
+/* Cards */
+.admin-card{
+  background:#fff;border-radius:var(--radius);
+  padding:1.8rem;
+  box-shadow:var(--shadow);
+}
+.admin-card-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.2rem;font-weight:700;color:var(--c1);
+  margin-bottom:1.4rem;
+  display:flex;align-items:center;gap:.5rem;
+  border-bottom:2px solid rgba(53,88,114,.08);
+  padding-bottom:.8rem;
+}
+
+/* Form */
+.field{margin-bottom:1.1rem;}
+.field label{
+  display:block;font-size:.82rem;font-weight:600;
+  color:var(--c1);margin-bottom:.38rem;
+}
+.field input,.field textarea,.field select{
+  width:100%;padding:.7rem 1rem;
+  border:1.5px solid rgba(53,88,114,.16);border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--c1);
+  background:var(--c4);outline:none;
+  transition:border-color .2s,background .2s;
+}
+.field input:focus,.field textarea:focus,.field select:focus{
+  border-color:var(--c2);background:#fff;
+}
+.field textarea{min-height:70px;resize:vertical;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+
+/* File type pills */
+.type-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.3rem;}
+.type-pill{
+  padding:.3rem .85rem;border-radius:50px;
+  border:1.5px solid rgba(53,88,114,.18);
+  font-size:.76rem;font-weight:600;color:#6b8499;
+  cursor:pointer;transition:all .2s;background:none;
+  font-family:'DM Sans',sans-serif;
+}
+.type-pill.active,.type-pill:hover{
+  background:var(--c1);border-color:var(--c1);color:var(--c4);
+}
+
+/* Submit button */
+.publish-btn{
+  width:100%;padding:.88rem;
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  color:var(--c4);
+  font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;
+  border:none;border-radius:10px;cursor:pointer;
+  transition:filter var(--t),transform .15s;
+  letter-spacing:.02em;
+  position:relative;overflow:hidden;
+  margin-top:.5rem;
+}
+.publish-btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+  transform:translateX(-100%);transition:transform .4s ease;
+}
+.publish-btn:hover::after{transform:translateX(100%);}
+.publish-btn:hover{filter:brightness(1.08);transform:scale(1.01);}
+.publish-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+
+/* Toast notification */
+.toast{
+  position:fixed;bottom:2rem;right:2rem;
+  background:var(--c1);color:var(--c4);
+  font-size:.88rem;font-weight:600;
+  padding:.85rem 1.5rem;border-radius:12px;
+  box-shadow:0 8px 32px rgba(53,88,114,.4);
+  transform:translateY(80px);opacity:0;
+  transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .35s;
+  z-index:999;max-width:320px;
+  display:flex;align-items:center;gap:.6rem;
+}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.error{background:#8b2020;}
+.toast.success{background:#1a6640;}
+
+/* Documents list */
+.doc-list{display:flex;flex-direction:column;gap:.7rem;max-height:520px;overflow-y:auto;}
+.doc-list::-webkit-scrollbar{width:4px;}
+.doc-list::-webkit-scrollbar-track{background:transparent;}
+.doc-list::-webkit-scrollbar-thumb{background:rgba(53,88,114,.2);border-radius:2px;}
+
+.doc-item{
+  background:var(--c4);border-radius:10px;
+  padding:.85rem 1rem;
+  display:flex;align-items:flex-start;gap:.8rem;
+  border:1.5px solid rgba(53,88,114,.08);
+  transition:border-color var(--t);
+}
+.doc-item:hover{border-color:var(--c3);}
+.doc-item-ico{
+  width:36px;height:36px;flex-shrink:0;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+}
+.doc-item-ico.pdf{background:linear-gradient(135deg,#c94040,#e07070);}
+.doc-item-ico.ppt{background:linear-gradient(135deg,#b84d1e,#e07040);}
+.doc-item-ico.doc{background:linear-gradient(135deg,var(--c1),var(--c2));}
+.doc-item-info{flex:1;min-width:0;}
+.doc-item-name{font-size:.85rem;font-weight:600;color:var(--c1);margin-bottom:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.doc-item-meta{font-size:.72rem;color:#6b8499;}
+.doc-item-tag{
+  font-size:.65rem;font-weight:700;letter-spacing:.05em;
+  padding:.12rem .5rem;border-radius:50px;
+  background:rgba(156,213,255,.25);color:var(--c1);
+  margin-right:.3rem;
+}
+.doc-delete{
+  background:none;border:none;color:#c83232;cursor:pointer;
+  font-size:1rem;padding:.2rem .4rem;border-radius:6px;
+  transition:background .2s;flex-shrink:0;
+}
+.doc-delete:hover{background:rgba(200,50,50,.1);}
+
+.empty-state{
+  text-align:center;padding:2rem;color:#6b8499;font-size:.88rem;
+}
+.empty-state .empty-icon{font-size:2.5rem;margin-bottom:.5rem;}
+
+/* Stats row */
+.stats-row{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;
+  margin-bottom:1.4rem;
+}
+.stat-mini{
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  border-radius:10px;padding:.9rem;text-align:center;
+}
+.stat-mini .sv{
+  font-family:'Playfair Display',serif;
+  font-size:1.6rem;font-weight:900;color:var(--c4);display:block;
+}
+.stat-mini .sl{font-size:.68rem;color:rgba(247,248,240,.72);margin-top:.1rem;letter-spacing:.04em;}
+
+/* Sheet info box */
+.sheet-info{
+  background:rgba(156,213,255,.12);
+  border:1.5px dashed rgba(122,170,206,.45);
+  border-radius:12px;padding:1.2rem 1.4rem;
+  font-size:.83rem;color:var(--c1);line-height:1.65;
+  margin-bottom:1.4rem;
+}
+.sheet-info strong{font-weight:700;display:block;margin-bottom:.3rem;font-size:.9rem;}
+.sheet-info code{
+  background:rgba(53,88,114,.1);padding:.1rem .4rem;border-radius:4px;
+  font-size:.78rem;font-family:monospace;color:var(--c1d);
+}
+
+/* Filter bar */
+.filter-bar{
+  display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center;
+}
+.filter-select{
+  padding:.38rem .75rem;border:1.5px solid rgba(53,88,114,.16);border-radius:8px;
+  font-family:'DM Sans',sans-serif;font-size:.78rem;color:var(--c1);
+  background:var(--c4);outline:none;cursor:pointer;
+}
+.filter-select:focus{border-color:var(--c2);}
+.doc-count{font-size:.78rem;color:#6b8499;margin-left:auto;}
+
+/* Section label */
+.section-lbl{
+  font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(53,88,114,.5);margin-bottom:.5rem;
+}
+
+/* Spinner */
+.spinner{
+  display:inline-block;width:16px;height:16px;
+  border:2px solid rgba(247,248,240,.4);
+  border-top-color:var(--c4);
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  vertical-align:middle;margin-right:.4rem;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN SCREEN ══════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">📚 <span>Uni</span>Vault</div>
+    <div class="login-sub">Admin Panel — Owner Access Only</div>
+    <div class="login-err" id="loginErr">❌ Wrong password. Try again.</div>
+    <label class="login-label">Admin Password</label>
+    <input class="login-input" type="password" id="pwdInput" placeholder="Enter your admin password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="login-btn" onclick="doLogin()">🔐 Login to Admin Panel</button>
+    <div style="text-align:center;margin-top:1rem;font-size:.75rem;color:#9ab4c8;">
+      Default password: <strong>univault2024</strong><br>
+      <span style="font-size:.7rem;">Change it in the script section below</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ADMIN PANEL ══════════ -->
+<div id="adminPanel">
+  <div class="topbar">
+    <div class="topbar-logo">
+      📚 <span>Uni</span>Vault
+      <span class="topbar-badge">Admin Panel</span>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">🚪 Logout</button>
+  </div>
+
+  <div class="admin-body">
+
+    <!-- LEFT: Upload Form -->
+    <div>
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-mini"><span class="sv" id="stat-total">0</span><div class="sl">Total Files</div></div>
+        <div class="stat-mini"><span class="sv" id="stat-sem1">0</span><div class="sl">Semester 1</div></div>
+        <div class="stat-mini"><span class="sv" id="stat-sem2">0</span><div class="sl">Semester 2</div></div>
+      </div>
+
+      <!-- Google Sheets Setup Info -->
+      <div class="sheet-info">
+        <strong>📋 Google Sheets Setup Required</strong>
+        Open your Google Sheet and paste your Web App URL below.<br>
+        <a href="#" onclick="showSetupGuide()" style="color:var(--c2);font-weight:600;">📖 Click here for setup guide</a>
+      </div>
+
+      <!-- Sheet URL Input -->
+      <div class="field" style="margin-bottom:1.4rem;">
+        <label>🔗 Google Sheets Web App URL</label>
+        <input type="url" id="sheetUrl" placeholder="https://script.google.com/macros/s/..." oninput="saveSheetUrl()"/>
+        <div style="font-size:.72rem;color:#6b8499;margin-top:.3rem;">
+          This is your Apps Script deployment URL. Saved automatically.
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-title">📤 Upload New Document</div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Semester</label>
+            <select id="f-sem" onchange="updateSubjects()">
+              <option value="">Select Semester</option>
+              <option value="sem1">Semester 1</option>
+              <option value="sem2">Semester 2</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Subject</label>
+            <select id="f-subj">
+              <option value="">Select Subject</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Tab / Category</label>
+          <select id="f-tab">
+            <option value="assignments">📄 Assignments</option>
+            <option value="pyq">📜 PYQ Papers</option>
+            <option value="ppt">📊 PPTs & Docs</option>
+            <option value="notes">📓 Notes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Document Name</label>
+          <input type="text" id="f-name" placeholder="e.g. Unit 1 Assignment — Calculus"/>
+        </div>
+
+        <div class="field">
+          <label>Description</label>
+          <textarea id="f-desc" placeholder="Brief description of what this document contains..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>File Type</label>
+          <div class="type-row">
+            <button class="type-pill active" data-type="pdf" onclick="selectType(this)">📕 PDF</button>
+            <button class="type-pill" data-type="ppt" onclick="selectType(this)">📊 PPT</button>
+            <button class="type-pill" data-type="doc" onclick="selectType(this)">📄 DOC</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Google Drive Link</label>
+          <input type="url" id="f-url" placeholder="https://drive.google.com/file/d/.../view"/>
+          <div style="font-size:.72rem;color:#6b8499;margin-top:.3rem;">
+            Upload file to Google Drive → Share → Anyone with link → Copy link
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Preview Link <span style="font-size:.7rem;font-weight:400;color:#9ab4c8;">(optional — for in-app preview)</span></label>
+          <input type="url" id="f-preview" placeholder="https://drive.google.com/file/d/.../preview"/>
+          <div style="font-size:.72rem;color:#6b8499;margin-top:.3rem;">
+            Change <code>/view</code> to <code>/preview</code> at the end of your Drive link
+          </div>
+        </div>
+
+        <button class="publish-btn" id="publishBtn" onclick="publishDoc()">
+          🚀 Publish to Student Website
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Uploaded Documents -->
+    <div>
+      <div class="admin-card" style="height:fit-content;">
+        <div class="admin-card-title">📁 Uploaded Documents</div>
+
+        <div class="filter-bar">
+          <select class="filter-select" id="filter-sem" onchange="renderDocList()">
+            <option value="">All Semesters</option>
+            <option value="sem1">Semester 1</option>
+            <option value="sem2">Semester 2</option>
+          </select>
+          <select class="filter-select" id="filter-subj" onchange="renderDocList()">
+            <option value="">All Subjects</option>
+          </select>
+          <select class="filter-select" id="filter-tab" onchange="renderDocList()">
+            <option value="">All Tabs</option>
+            <option value="assignments">Assignments</option>
+            <option value="pyq">PYQ Papers</option>
+            <option value="ppt">PPTs & Docs</option>
+            <option value="notes">Notes</option>
+          </select>
+          <span class="doc-count" id="doc-count">0 files</span>
+        </div>
+
+        <div class="doc-list" id="docList">
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            No documents uploaded yet.<br>Use the form on the left to add your first file!
+          </div>
+        </div>
+      </div>
+
+      <!-- Setup Guide (hidden by default) -->
+      <div class="admin-card" id="setupGuide" style="display:none;margin-top:1.5rem;">
+        <div class="admin-card-title">📖 Google Sheets Setup Guide</div>
+        <div style="font-size:.84rem;color:#4a6275;line-height:1.7;">
+          <div class="section-lbl" style="margin-bottom:.6rem;">Step 1 — Create Google Sheet</div>
+          <p>Go to <strong>sheets.google.com</strong> → Create new sheet → Name it <strong>"UniVault Documents"</strong></p>
+          <br>
+          <div class="section-lbl" style="margin-bottom:.6rem;">Step 2 — Add these column headers in Row 1</div>
+          <div style="background:rgba(53,88,114,.06);border-radius:8px;padding:.8rem;font-family:monospace;font-size:.75rem;color:var(--c1);overflow-x:auto;margin-bottom:.8rem;">
+            A: semester &nbsp;|&nbsp; B: subject &nbsp;|&nbsp; C: tab &nbsp;|&nbsp; D: name &nbsp;|&nbsp; E: desc &nbsp;|&nbsp; F: icon &nbsp;|&nbsp; G: url &nbsp;|&nbsp; H: preview &nbsp;|&nbsp; I: timestamp
+          </div>
+          <div class="section-lbl" style="margin-bottom:.6rem;">Step 3 — Open Apps Script</div>
+          <p>In your Sheet → <strong>Extensions → Apps Script</strong> → Delete existing code → Paste this code:</p>
+          <div style="background:#1a2e3b;border-radius:8px;padding:1rem;font-family:monospace;font-size:.72rem;color:#9CD5FF;line-height:1.6;margin:.6rem 0;overflow-x:auto;">
+function doGet(e) {<br>
+&nbsp;&nbsp;var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Sheet1');<br>
+&nbsp;&nbsp;var data = sheet.getDataRange().getValues();<br>
+&nbsp;&nbsp;var headers = data[0];<br>
+&nbsp;&nbsp;var rows = data.slice(1).map(function(row) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;var obj = {};<br>
+&nbsp;&nbsp;&nbsp;&nbsp;headers.forEach(function(h, i) { obj[h] = row[i]; });<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return obj;<br>
+&nbsp;&nbsp;});<br>
+&nbsp;&nbsp;return ContentService<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.createTextOutput(JSON.stringify(rows))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.setMimeType(ContentService.MimeType.JSON);<br>
+}<br><br>
+function doPost(e) {<br>
+&nbsp;&nbsp;var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Sheet1');<br>
+&nbsp;&nbsp;var data = JSON.parse(e.postData.contents);<br>
+&nbsp;&nbsp;sheet.appendRow([<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data.semester, data.subject, data.tab,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data.name, data.desc, data.icon,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;data.url, data.preview, new Date().toISOString()<br>
+&nbsp;&nbsp;]);<br>
+&nbsp;&nbsp;return ContentService<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.createTextOutput(JSON.stringify({status:'ok'}))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;.setMimeType(ContentService.MimeType.JSON);<br>
+}
+          </div>
+          <div class="section-lbl" style="margin-bottom:.6rem;">Step 4 — Deploy</div>
+          <p>Click <strong>Deploy → New Deployment → Web App</strong><br>
+          Execute as: <strong>Me</strong><br>
+          Who has access: <strong>Anyone</strong><br>
+          Click Deploy → Copy the Web App URL → Paste it above in the Admin Panel</p>
+          <br>
+          <div style="background:rgba(46,160,100,.1);border:1px solid rgba(46,160,100,.3);border-radius:8px;padding:.8rem;color:#1a6640;font-size:.8rem;">
+            ✅ Once done, all documents you publish here will automatically appear on the student website!
+          </div>
+        </div>
+        <button onclick="document.getElementById('setupGuide').style.display='none'" style="margin-top:1rem;background:none;border:none;color:var(--c2);font-size:.82rem;cursor:pointer;font-family:'DM Sans',sans-serif;">Hide Guide ↑</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════
+   CONFIG — CHANGE PASSWORD HERE
+══════════════════════════════════════════ */
+const ADMIN_PASSWORD = 'univault2024'; // ← Change this to your password
+
+/* ══════════════════════════════════════════
+   SUBJECT DATA
+══════════════════════════════════════════ */
+const SUBJECTS = {
+  sem1:[
+    {id:'tcs',    name:'Technical Communication Skills', code:'T240C1'},
+    {id:'calculus',name:'Calculus',                       code:'S2120C1'},
+    {id:'physics', name:'Physics',                        code:'S2140C1'},
+    {id:'physics-practical',name:'Physics Practical',    code:'S2140C1-P'},
+    {id:'mit',     name:'MIT',                            code:'MIT-SEM1'},
+    {id:'python1', name:'Python Programming - I',         code:'C2110C1'},
+    {id:'webtech', name:'Web Technology',                 code:'C2111C3'},
+  ],
+  sem2:[
+    {id:'python2',    name:'Python Programming - II',          code:'C2211C4'},
+    {id:'c-prog',     name:'Programming in C',                 code:'C2211C1'},
+    {id:'de',         name:'Digital Electronics',              code:'T2280C1'},
+    {id:'de-practical',name:'Digital Electronics Practical',   code:'T2280C1-P'},
+    {id:'prob-stats', name:'Probability & Statistics using R', code:'S2220C1'},
+    {id:'finance',    name:'Finance and Accounting',           code:'B2210C1'},
+  ]
+};
+
+/* All subjects flat for filter dropdowns */
+const ALL_SUBJECTS = [...SUBJECTS.sem1, ...SUBJECTS.sem2];
+
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
+let docs = JSON.parse(localStorage.getItem('univault_docs')||'[]');
+let selectedType = 'pdf';
+
+/* ══════════════════════════════════════════
+   LOGIN
+══════════════════════════════════════════ */
+function doLogin(){
+  const pwd = document.getElementById('pwdInput').value;
+  if(pwd === ADMIN_PASSWORD){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('adminPanel').style.display='block';
+    loadSheetUrl();
+    populateFilterSubjects();
+    renderDocList();
+    updateStats();
+  } else {
+    document.getElementById('loginErr').classList.add('show');
+    document.getElementById('pwdInput').value='';
+    document.getElementById('pwdInput').focus();
+  }
+}
+function doLogout(){
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('adminPanel').style.display='none';
+  document.getElementById('pwdInput').value='';
+}
+
+/* ══════════════════════════════════════════
+   SHEET URL
+══════════════════════════════════════════ */
+function saveSheetUrl(){
+  localStorage.setItem('univault_sheet_url', document.getElementById('sheetUrl').value.trim());
+}
+function loadSheetUrl(){
+  const url = localStorage.getItem('univault_sheet_url')||'';
+  document.getElementById('sheetUrl').value = url;
+}
+
+/* ══════════════════════════════════════════
+   SUBJECTS DROPDOWN
+══════════════════════════════════════════ */
+function updateSubjects(){
+  const sem = document.getElementById('f-sem').value;
+  const subjSel = document.getElementById('f-subj');
+  subjSel.innerHTML='<option value="">Select Subject</option>';
+  if(!sem) return;
+  SUBJECTS[sem].forEach(s=>{
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = `${s.name} (${s.code})`;
+    subjSel.appendChild(opt);
+  });
+}
+
+function populateFilterSubjects(){
+  const sel = document.getElementById('filter-subj');
+  sel.innerHTML='<option value="">All Subjects</option>';
+  ALL_SUBJECTS.forEach(s=>{
+    const opt=document.createElement('option');
+    opt.value=s.id;
+    opt.textContent=s.name;
+    sel.appendChild(opt);
+  });
+}
+
+/* ══════════════════════════════════════════
+   FILE TYPE SELECTION
+══════════════════════════════════════════ */
+function selectType(btn){
+  document.querySelectorAll('.type-pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  selectedType = btn.dataset.type;
+}
+
+/* ══════════════════════════════════════════
+   PUBLISH DOCUMENT
+══════════════════════════════════════════ */
+async function publishDoc(){
+  const sem   = document.getElementById('f-sem').value;
+  const subj  = document.getElementById('f-subj').value;
+  const tab   = document.getElementById('f-tab').value;
+  const name  = document.getElementById('f-name').value.trim();
+  const desc  = document.getElementById('f-desc').value.trim();
+  const url   = document.getElementById('f-url').value.trim();
+  const prev  = document.getElementById('f-preview').value.trim();
+  const sheetUrl = localStorage.getItem('univault_sheet_url')||'';
+
+  // Validation
+  if(!sem){showToast('❌ Please select a Semester','error');return;}
+  if(!subj){showToast('❌ Please select a Subject','error');return;}
+  if(!name){showToast('❌ Please enter a Document Name','error');return;}
+  if(!url){showToast('❌ Please paste the Google Drive link','error');return;}
+
+  const doc = {
+    semester:sem, subject:subj, tab, name, desc,
+    icon:selectedType, url, preview:prev||url.replace('/view','/preview'),
+    timestamp: new Date().toISOString()
+  };
+
+  const btn = document.getElementById('publishBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Publishing...';
+
+  // Save locally (always works)
+  docs.push(doc);
+  localStorage.setItem('univault_docs', JSON.stringify(docs));
+
+  // Try to save to Google Sheets (works if URL is set)
+  if(sheetUrl){
+    try{
+      await fetch(sheetUrl,{
+        method:'POST',
+        mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(doc)
+      });
+      showToast('✅ Published to Google Sheets!','success');
+    } catch(err){
+      showToast('⚠️ Saved locally. Sheets sync failed.','error');
+    }
+  } else {
+    showToast('✅ Saved locally! Set up Google Sheets to sync to student site.','success');
+  }
+
+  // Reset form
+  document.getElementById('f-name').value='';
+  document.getElementById('f-desc').value='';
+  document.getElementById('f-url').value='';
+  document.getElementById('f-preview').value='';
+
+  btn.disabled=false;
+  btn.innerHTML='🚀 Publish to Student Website';
+
+  renderDocList();
+  updateStats();
+}
+
+/* ══════════════════════════════════════════
+   RENDER DOC LIST
+══════════════════════════════════════════ */
+const TAB_LABELS={assignments:'Assignments',pyq:'PYQ Papers',ppt:'PPTs & Docs',notes:'Notes'};
+const ICO={'pdf':'📕','ppt':'📊','doc':'📄'};
+
+function renderDocList(){
+  const semF  = document.getElementById('filter-sem').value;
+  const subjF = document.getElementById('filter-subj').value;
+  const tabF  = document.getElementById('filter-tab').value;
+
+  let filtered = docs.filter(d=>{
+    if(semF  && d.semester!==semF)  return false;
+    if(subjF && d.subject!==subjF)  return false;
+    if(tabF  && d.tab!==tabF)       return false;
+    return true;
+  });
+
+  document.getElementById('doc-count').textContent = filtered.length+' file'+(filtered.length!==1?'s':'');
+
+  const list = document.getElementById('docList');
+  if(!filtered.length){
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">📭</div>No documents yet.</div>`;
+    return;
+  }
+
+  list.innerHTML = [...filtered].reverse().map((d,ri)=>{
+    const realIdx = docs.length - 1 - ri;
+    const subj = ALL_SUBJECTS.find(s=>s.id===d.subject);
+    const subjName = subj ? subj.name : d.subject;
+    const icoClass = d.icon||'doc';
+    return `
+    <div class="doc-item">
+      <div class="doc-item-ico ${icoClass}">${ICO[icoClass]||'📄'}</div>
+      <div class="doc-item-info">
+        <div class="doc-item-name">${d.name}</div>
+        <div class="doc-item-meta">
+          <span class="doc-item-tag">${d.semester==='sem1'?'Sem 1':'Sem 2'}</span>
+          <span class="doc-item-tag">${subjName}</span>
+          <span class="doc-item-tag">${TAB_LABELS[d.tab]||d.tab}</span>
+        </div>
+        ${d.desc?`<div style="font-size:.73rem;color:#9ab4c8;margin-top:.2rem;">${d.desc.substring(0,60)}${d.desc.length>60?'...':''}</div>`:''}
+      </div>
+      <button class="doc-delete" onclick="deleteDoc(${realIdx})" title="Delete">🗑</button>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════
+   DELETE
+══════════════════════════════════════════ */
+function deleteDoc(idx){
+  if(!confirm('Delete "'+docs[idx].name+'"?\nThis removes it from the student website.')) return;
+  docs.splice(idx,1);
+  localStorage.setItem('univault_docs',JSON.stringify(docs));
+  renderDocList();
+  updateStats();
+  showToast('🗑 Document deleted','error');
+}
+
+/* ══════════════════════════════════════════
+   STATS
+══════════════════════════════════════════ */
+function updateStats(){
+  document.getElementById('stat-total').textContent = docs.length;
+  document.getElementById('stat-sem1').textContent  = docs.filter(d=>d.semester==='sem1').length;
+  document.getElementById('stat-sem2').textContent  = docs.filter(d=>d.semester==='sem2').length;
+}
+
+/* ══════════════════════════════════════════
+   SETUP GUIDE TOGGLE
+══════════════════════════════════════════ */
+function showSetupGuide(){
+  const g = document.getElementById('setupGuide');
+  g.style.display = g.style.display==='none'?'block':'none';
+}
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+function showToast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast '+type+' show';
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+/* Enter key on login */
+document.getElementById('pwdInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter') doLogin();
+});
+</script>
+</body>
+</html>

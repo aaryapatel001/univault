@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UniVault — Student Resource Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --c1:#355872; --c2:#7AAACE; --c3:#9CD5FF; --c4:#F7F8F0;
+  --c1d:#243e52;
+  --shadow:0 8px 32px rgba(53,88,114,.18);
+  --radius:16px;
+  --t:0.36s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--c4);
+  color:var(--c1);
+  min-height:100vh;
+  overflow-x:hidden;
+  padding-top:67px;
+}
+
+/* PAGE SYSTEM */
+.page{display:none;min-height:100vh;animation:pageIn .42s cubic-bezier(.4,0,.2,1);}
+.page.active{display:block;}
+@keyframes pageIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+/* ══════════════════════════════════════════
+   NAVBAR — fixed, scroll-aware
+══════════════════════════════════════════ */
+nav{
+  position:fixed;top:0;left:0;right:0;
+  z-index:500;
+  display:flex;flex-direction:column;
+  background:var(--c1);
+  box-shadow:0 2px 24px rgba(53,88,114,.28);
+  transition:background .3s ease,box-shadow .3s ease;
+}
+nav.scrolled{
+  background:rgba(35,62,82,.96);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  box-shadow:0 4px 36px rgba(53,88,114,.38);
+}
+.nav-top{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  padding:0 2.5rem;
+  height:64px;
+  transition:height .3s ease;
+}
+nav.scrolled .nav-top{height:52px;}
+.nav-logo{
+  font-family:'Playfair Display',serif;
+  font-size:1.55rem;font-weight:900;
+  color:var(--c4);letter-spacing:-.5px;
+  cursor:pointer;user-select:none;
+  display:flex;align-items:center;gap:.5rem;
+  transition:font-size .3s ease;
+  flex-shrink:0;
+}
+nav.scrolled .nav-logo{font-size:1.32rem;}
+.nav-logo span{color:var(--c3);}
+.nav-links{
+  display:flex;align-items:center;gap:.15rem;
+  list-style:none;
+  overflow-x:auto;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+  flex:1;
+  justify-content:flex-end;
+  padding:0 0 0 1rem;
+}
+.nav-links::-webkit-scrollbar{display:none;}
+.nav-links li button{
+  background:none;border:none;
+  font-family:'DM Sans',sans-serif;
+  font-size:.86rem;font-weight:500;letter-spacing:.02em;
+  color:rgba(156,213,255,.85);
+  padding:.42rem .82rem;
+  border-radius:8px;cursor:pointer;
+  transition:background var(--t),color var(--t);
+  white-space:nowrap;
+  position:relative;
+}
+.nav-links li button:hover{background:rgba(156,213,255,.14);color:var(--c4);}
+.nav-links li button.active{color:var(--c4);font-weight:600;}
+.nav-links li button.active::after{
+  content:'';
+  position:absolute;
+  bottom:4px;left:50%;transform:translateX(-50%);
+  width:18px;height:3px;
+  background:var(--c3);
+  border-radius:3px 3px 0 0;
+}
+/* Progress bar */
+.nav-progress{height:3px;background:rgba(255,255,255,.07);position:relative;}
+.nav-progress-fill{
+  position:absolute;top:0;left:0;
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--c3),var(--c2));
+  transition:width .1s linear;
+  border-radius:0 3px 3px 0;
+  box-shadow:0 0 10px rgba(156,213,255,.55);
+}
+
+/* ── DROPDOWN MENUS ── */
+.nav-dropdown{position:relative;}
+.nav-dropdown>button{
+  display:inline-flex;align-items:center;gap:.3rem;
+  background:none;border:none;
+  font-family:'DM Sans',sans-serif;
+  font-size:.86rem;font-weight:500;letter-spacing:.02em;
+  color:rgba(156,213,255,.85);
+  padding:.42rem .82rem;
+  border-radius:8px;cursor:pointer;
+  transition:background var(--t),color var(--t);
+  white-space:nowrap;position:relative;
+}
+.nav-dropdown>button .dd-arrow{
+  font-size:.6rem;opacity:.7;
+  transition:transform .25s ease;
+  display:inline-block;
+}
+.nav-dropdown:hover>button .dd-arrow,
+.nav-dropdown.open>button .dd-arrow{transform:rotate(180deg);}
+.nav-dropdown>button:hover,.nav-dropdown.open>button{
+  background:rgba(156,213,255,.14);color:var(--c4);
+}
+.nav-dropdown>button.active{color:var(--c4);font-weight:600;}
+.nav-dropdown>button.active::after{
+  content:'';position:absolute;
+  bottom:4px;left:50%;transform:translateX(-50%);
+  width:18px;height:3px;
+  background:var(--c3);border-radius:3px 3px 0 0;
+}
+/* Dropdown panel */
+.dd-menu{
+  position:absolute;top:calc(100% + 6px);left:0;
+  min-width:270px;
+  background:var(--c1d);
+  border:1px solid rgba(156,213,255,.18);
+  border-radius:12px;
+  padding:.5rem;
+  box-shadow:0 16px 48px rgba(26,46,59,.45);
+  opacity:0;pointer-events:none;
+  transform:translateY(-8px);
+  transition:opacity .22s ease,transform .22s ease;
+  z-index:600;
+}
+.nav-dropdown:hover .dd-menu,
+.nav-dropdown.open .dd-menu{
+  opacity:1;pointer-events:auto;transform:translateY(0);
+}
+.dd-menu-header{
+  font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(156,213,255,.55);
+  padding:.4rem .7rem .3rem;
+}
+.dd-item{
+  display:flex;flex-direction:column;
+  padding:.52rem .75rem;border-radius:8px;cursor:pointer;
+  transition:background .18s;
+  text-align:left;border:none;background:none;width:100%;
+}
+.dd-item:hover{background:rgba(156,213,255,.12);}
+.dd-item .dd-subj-name{
+  font-family:'DM Sans',sans-serif;
+  font-size:.83rem;font-weight:600;color:var(--c4);
+  line-height:1.3;
+}
+.dd-item .dd-subj-code{
+  font-size:.68rem;font-weight:500;
+  color:var(--c3);
+  letter-spacing:.04em;margin-top:.1rem;
+}
+.dd-divider{height:1px;background:rgba(156,213,255,.1);margin:.3rem .5rem;}
+
+/* Hamburger */
+.hamburger{
+  display:none;flex-direction:column;gap:5px;
+  cursor:pointer;padding:6px;margin-left:1rem;flex-shrink:0;
+}
+.hamburger span{
+  display:block;width:22px;height:2px;
+  background:var(--c4);border-radius:2px;
+  transition:transform .3s ease,opacity .3s ease;
+}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0);}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+/* Mobile */
+@media(max-width:820px){
+  .hamburger{display:flex;}
+  .nav-links{
+    position:absolute;
+    top:100%;left:0;right:0;
+    flex-direction:column;align-items:stretch;justify-content:flex-start;
+    background:rgba(35,62,82,.97);
+    backdrop-filter:blur(16px);
+    padding:0 1.5rem;
+    max-height:0;overflow:hidden;
+    transition:max-height .5s cubic-bezier(.4,0,.2,1),padding .3s ease;
+    box-shadow:0 12px 32px rgba(53,88,114,.3);
+    gap:0;
+  }
+  .nav-links.open{max-height:900px;padding:.6rem 1.5rem 1.2rem;}
+  .nav-links li,.nav-dropdown{border-bottom:1px solid rgba(156,213,255,.09);width:100%;}
+  .nav-links li:last-child,.nav-dropdown:last-child{border-bottom:none;}
+  .nav-links li button{width:100%;text-align:left;padding:.78rem .4rem;font-size:.92rem;}
+  .nav-links li button.active::after{display:none;}
+  .nav-top{padding:0 1.5rem;}
+  /* mobile dropdown */
+  .nav-dropdown>button{width:100%;text-align:left;padding:.78rem .4rem;font-size:.92rem;}
+  .nav-dropdown>button.active::after{display:none;}
+  .dd-menu{
+    position:static;
+    opacity:1;pointer-events:auto;transform:none;
+    box-shadow:none;border:none;
+    background:rgba(156,213,255,.05);
+    border-radius:8px;
+    padding:.3rem .5rem;
+    margin:.2rem 0 .4rem 1rem;
+    display:none;
+  }
+  .nav-dropdown.open .dd-menu{display:block;}
+  .dd-menu-header{color:rgba(156,213,255,.45);}
+  .dd-item .dd-subj-name{font-size:.85rem;}
+}
+
+/* HERO */
+.hero{
+  position:relative;
+  background:linear-gradient(135deg,var(--c1) 0%,var(--c2) 100%);
+  min-height:340px;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;
+  padding:4rem 2rem 3rem;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239CD5FF' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(156,213,255,.18);border:1px solid rgba(156,213,255,.38);
+  color:var(--c3);font-size:.76rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  padding:.34rem 1rem;border-radius:50px;margin-bottom:1.2rem;
+  animation:fadeUp .6s ease both;
+}
+.hero h1{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(2.2rem,5vw,3.6rem);font-weight:900;
+  color:var(--c4);line-height:1.1;margin-bottom:1rem;
+  animation:fadeUp .7s .1s ease both;
+}
+.hero h1 em{font-style:normal;color:var(--c3);}
+.hero p{
+  font-size:1.06rem;color:rgba(247,248,240,.8);
+  max-width:520px;line-height:1.65;
+  animation:fadeUp .7s .2s ease both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+
+/* SUBJECTS */
+.subjects-section{padding:2.5rem;}
+.section-title{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:var(--c1);margin-bottom:.4rem;}
+.section-sub{color:var(--c2);font-size:.95rem;margin-bottom:2rem;}
+.subjects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.4rem;}
+.subject-card{
+  background:#fff;border-radius:var(--radius);overflow:hidden;
+  box-shadow:0 2px 12px rgba(53,88,114,.09);cursor:pointer;
+  transition:transform var(--t),box-shadow var(--t),border-color var(--t);
+  border:1.5px solid transparent;
+}
+.subject-card:hover{transform:translateY(-6px) scale(1.015);box-shadow:var(--shadow);border-color:var(--c3);}
+.card-stripe{height:7px;background:linear-gradient(90deg,var(--c1),var(--c2));}
+.card-body{padding:1.4rem 1.5rem 1.6rem;}
+.card-icon{
+  width:46px;height:46px;border-radius:12px;
+  background:linear-gradient(135deg,var(--c3),var(--c2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;margin-bottom:1rem;
+  box-shadow:0 4px 14px rgba(122,170,206,.35);
+}
+.card-title{font-family:'Playfair Display',serif;font-size:1.12rem;font-weight:700;color:var(--c1);margin-bottom:.4rem;}
+.card-desc{font-size:.84rem;color:#6b8499;line-height:1.55;margin-bottom:1.1rem;}
+.card-pills{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.1rem;}
+.pill{font-size:.72rem;font-weight:600;padding:.25rem .65rem;border-radius:50px;background:rgba(156,213,255,.22);color:var(--c1);}
+.card-btn{
+  display:inline-flex;align-items:center;gap:.45rem;
+  background:var(--c1);color:var(--c4);
+  font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:600;
+  padding:.55rem 1.2rem;border-radius:8px;border:none;cursor:pointer;
+  transition:background var(--t),transform .15s;letter-spacing:.02em;
+}
+.card-btn:hover{background:var(--c2);transform:scale(1.04);}
+.card-btn svg{width:14px;height:14px;transition:transform .2s;}
+.card-btn:hover svg{transform:translateX(3px);}
+
+/* SUBJECT DETAIL */
+.subject-hero{
+  background:linear-gradient(120deg,var(--c1d),var(--c1) 55%,var(--c2));
+  padding:3rem 2.5rem 2.5rem;position:relative;overflow:hidden;
+}
+.subject-hero::after{
+  content:'';position:absolute;right:-60px;top:-60px;
+  width:280px;height:280px;background:rgba(156,213,255,.12);border-radius:50%;
+}
+.back-btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:rgba(247,248,240,.14);border:1px solid rgba(247,248,240,.28);
+  color:var(--c4);font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:500;
+  padding:.42rem 1rem;border-radius:8px;cursor:pointer;margin-bottom:1.4rem;
+  transition:background var(--t);
+}
+.back-btn:hover{background:rgba(247,248,240,.24);}
+.subject-title{font-family:'Playfair Display',serif;font-size:clamp(1.7rem,4vw,2.6rem);font-weight:900;color:var(--c4);margin-bottom:.5rem;}
+.subject-meta{display:flex;flex-wrap:wrap;gap:1rem;margin-top:.8rem;}
+.meta-item{display:flex;align-items:center;gap:.4rem;font-size:.85rem;color:rgba(247,248,240,.82);}
+.tab-bar{
+  display:flex;gap:.3rem;padding:1.4rem 2.5rem 0;
+  border-bottom:2px solid rgba(53,88,114,.12);
+  overflow-x:auto;background:#fff;
+  position:sticky;top:67px;z-index:100;
+}
+.tab-bar::-webkit-scrollbar{height:0;}
+.tab-btn{
+  background:none;border:none;
+  font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;color:#6b8499;
+  padding:.65rem 1.2rem;border-bottom:3px solid transparent;margin-bottom:-2px;
+  cursor:pointer;white-space:nowrap;
+  transition:color var(--t),border-color var(--t);
+}
+.tab-btn.active{color:var(--c1);font-weight:600;border-bottom-color:var(--c1);}
+.tab-btn:hover:not(.active){color:var(--c2);}
+.tab-content{display:none;padding:2rem 2.5rem;}
+.tab-content.active{display:block;animation:pageIn .3s ease;}
+.resource-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.1rem;}
+.resource-item{
+  background:#fff;border-radius:12px;padding:1.2rem 1.3rem;
+  display:flex;align-items:flex-start;gap:1rem;
+  box-shadow:0 2px 10px rgba(53,88,114,.07);
+  transition:transform var(--t),box-shadow var(--t),border-color var(--t);
+  border:1.5px solid rgba(53,88,114,.06);
+}
+.resource-item:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(53,88,114,.14);border-color:var(--c3);}
+.res-icon{width:42px;height:42px;flex-shrink:0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 3px 10px rgba(53,88,114,.22);}
+.res-icon.pdf{background:linear-gradient(135deg,#e14d4d,#f08080);}
+.res-icon.ppt{background:linear-gradient(135deg,#c05c2a,#e68a5c);}
+.res-icon.doc{background:linear-gradient(135deg,var(--c1),var(--c2));}
+.res-icon.mcq{background:linear-gradient(135deg,#2a8a6a,#5ec4a0);}
+.res-info{flex:1;min-width:0;}
+.res-name{font-size:.9rem;font-weight:600;color:var(--c1);margin-bottom:.22rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.res-desc{font-size:.77rem;color:#6b8499;line-height:1.45;margin-bottom:.7rem;}
+.res-actions{display:flex;gap:.5rem;flex-wrap:wrap;}
+.btn-preview,.btn-download{
+  font-family:'DM Sans',sans-serif;font-size:.76rem;font-weight:600;
+  padding:.32rem .8rem;border-radius:6px;border:none;cursor:pointer;
+  display:inline-flex;align-items:center;gap:.3rem;transition:all .22s;
+}
+.btn-preview{background:rgba(53,88,114,.09);color:var(--c1);}
+.btn-preview:hover{background:rgba(53,88,114,.18);transform:scale(1.04);}
+.btn-download{background:var(--c1);color:var(--c4);}
+.btn-download:hover{background:var(--c2);transform:scale(1.04);}
+.upload-notice{
+  background:rgba(156,213,255,.18);border:1.5px dashed var(--c2);
+  border-radius:12px;padding:1.5rem;text-align:center;
+  color:var(--c1);font-size:.88rem;line-height:1.6;margin-bottom:1.5rem;
+}
+.upload-notice strong{font-weight:700;color:var(--c1);display:block;margin-bottom:.3rem;font-size:.95rem;}
+.mcq-card{
+  background:#fff;border-radius:14px;padding:1.5rem;margin-bottom:1.2rem;
+  box-shadow:0 2px 10px rgba(53,88,114,.07);border-left:4px solid var(--c2);
+}
+.mcq-q{font-weight:600;color:var(--c1);margin-bottom:1rem;font-size:.95rem;line-height:1.55;}
+.mcq-options{display:flex;flex-direction:column;gap:.55rem;}
+.mcq-opt{
+  padding:.6rem 1rem;border-radius:8px;
+  border:1.5px solid rgba(53,88,114,.15);
+  cursor:pointer;font-size:.87rem;transition:all .2s;color:var(--c1);
+}
+.mcq-opt:hover{border-color:var(--c2);background:rgba(156,213,255,.1);}
+.mcq-opt.correct{background:rgba(46,160,100,.12);border-color:#2ea064;color:#1a6640;}
+.mcq-opt.wrong{background:rgba(220,60,60,.1);border-color:#dc3c3c;color:#8b2020;}
+.mcq-result{margin-top:.8rem;font-size:.83rem;font-weight:600;display:none;}
+.mcq-result.show{display:block;}
+.mcq-result.correct-msg{color:#2ea064;}
+.mcq-result.wrong-msg{color:#dc3c3c;}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-bottom:1.5rem;}
+.info-card{background:#fff;border-radius:12px;padding:1.2rem;box-shadow:0 2px 10px rgba(53,88,114,.07);text-align:center;}
+.info-card .info-val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--c1);}
+.info-card .info-label{font-size:.8rem;color:#6b8499;margin-top:.2rem;}
+.overview-block{background:#fff;border-radius:14px;padding:1.6rem;box-shadow:0 2px 10px rgba(53,88,114,.07);margin-bottom:1.5rem;}
+.overview-block h3{font-family:'Playfair Display',serif;color:var(--c1);font-size:1.1rem;margin-bottom:.8rem;}
+.overview-block p{font-size:.9rem;color:#4a6275;line-height:1.65;}
+.overview-block ul{padding-left:1.2rem;margin-top:.6rem;display:flex;flex-direction:column;gap:.35rem;}
+.overview-block ul li{font-size:.88rem;color:#4a6275;line-height:1.5;}
+
+/* ABOUT + CONTACT */
+.about-hero,.contact-hero{
+  background:linear-gradient(120deg,var(--c1d),var(--c1),var(--c2));
+  padding:4rem 2.5rem 3rem;text-align:center;
+}
+.about-hero h1,.contact-hero h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;color:var(--c4);margin-bottom:.8rem;}
+.about-hero p,.contact-hero p{color:rgba(247,248,240,.82);font-size:1rem;max-width:500px;margin:0 auto;}
+.about-content,.contact-content{padding:2.5rem;max-width:860px;margin:0 auto;}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1.4rem;margin-top:1.5rem;}
+.team-card{background:#fff;border-radius:16px;padding:1.8rem 1.2rem;text-align:center;box-shadow:0 2px 12px rgba(53,88,114,.09);transition:transform var(--t);}
+.team-card:hover{transform:translateY(-5px);}
+.team-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c2));display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 1rem;box-shadow:0 4px 16px rgba(53,88,114,.25);}
+.team-name{font-weight:700;color:var(--c1);font-size:.98rem;}
+.team-role{font-size:.8rem;color:#6b8499;margin-top:.2rem;}
+.contact-form{background:#fff;border-radius:var(--radius);padding:2rem;box-shadow:var(--shadow);}
+.form-group{margin-bottom:1.2rem;}
+.form-group label{display:block;font-size:.84rem;font-weight:600;color:var(--c1);margin-bottom:.4rem;}
+.form-group input,.form-group textarea,.form-group select{
+  width:100%;padding:.72rem 1rem;
+  border:1.5px solid rgba(53,88,114,.18);border-radius:10px;
+  font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--c1);
+  background:var(--c4);outline:none;transition:border-color .2s;
+}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--c2);background:#fff;}
+.form-group textarea{min-height:120px;resize:vertical;}
+.submit-btn{
+  width:100%;padding:.85rem;background:var(--c1);color:var(--c4);
+  font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:600;
+  border:none;border-radius:10px;cursor:pointer;
+  transition:background var(--t),transform .15s;
+}
+.submit-btn:hover{background:var(--c2);transform:scale(1.02);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,46,59,.7);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay.open{display:flex;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal-box{background:#fff;border-radius:20px;width:min(680px,95vw);max-height:88vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 72px rgba(26,46,59,.3);animation:modalIn .3s cubic-bezier(.4,0,.2,1);}
+@keyframes modalIn{from{opacity:0;transform:scale(.93) translateY(20px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;background:var(--c1);}
+.modal-header h3{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--c4);font-weight:700;}
+.modal-close{background:rgba(247,248,240,.18);border:none;color:var(--c4);font-size:1.3rem;width:34px;height:34px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
+.modal-close:hover{background:rgba(247,248,240,.3);}
+.modal-body{flex:1;overflow-y:auto;padding:1.5rem;}
+.preview-placeholder{background:linear-gradient(135deg,var(--c4),rgba(156,213,255,.2));border-radius:12px;min-height:340px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;border:2px dashed rgba(53,88,114,.2);}
+.preview-placeholder .big-icon{font-size:3.5rem;}
+.preview-placeholder p{color:#6b8499;font-size:.9rem;text-align:center;max-width:280px;line-height:1.5;}
+.preview-placeholder strong{color:var(--c1);}
+
+/* HERO STATS */
+.hero-stats{
+  position:relative;z-index:1;
+  display:flex;flex-wrap:wrap;justify-content:center;gap:.9rem;
+  margin-top:1.8rem;
+  animation:fadeUp .7s .3s ease both;
+}
+.hero-stat{
+  background:rgba(247,248,240,.1);
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(247,248,240,.15);
+  padding:.7rem 1.4rem;border-radius:12px;
+  text-align:center;min-width:90px;
+}
+.hero-stat .val{
+  font-family:'Playfair Display',serif;
+  font-size:1.55rem;font-weight:900;color:var(--c3);display:block;
+}
+.hero-stat .lbl{font-size:.7rem;color:rgba(247,248,240,.68);font-weight:500;letter-spacing:.05em;text-transform:uppercase;}
+
+/* SEARCH BAR */
+.search-wrap{
+  position:relative;z-index:1;
+  width:100%;max-width:460px;
+  margin-top:1.4rem;
+  animation:fadeUp .7s .25s ease both;
+}
+.search-input{
+  width:100%;
+  padding:.78rem 1.2rem .78rem 2.9rem;
+  background:rgba(247,248,240,.1);
+  backdrop-filter:blur(10px);
+  border:1.5px solid rgba(156,213,255,.3);
+  border-radius:12px;
+  font-family:'DM Sans',sans-serif;
+  font-size:.9rem;color:var(--c4);
+  outline:none;
+  transition:border-color var(--t),background var(--t);
+}
+.search-input::placeholder{color:rgba(247,248,240,.45);}
+.search-input:focus{border-color:var(--c3);background:rgba(247,248,240,.16);}
+.search-icon-wrap{
+  position:absolute;left:.85rem;top:50%;transform:translateY(-50%);
+  font-size:.95rem;pointer-events:none;
+}
+
+/* WHY UNIVAULT section */
+.why-section{
+  padding:3rem 2.5rem 2rem;
+  background:#fff;
+  border-bottom:1px solid rgba(53,88,114,.08);
+}
+.why-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:1.2rem;
+  margin-top:1.5rem;
+}
+.why-card{
+  background:var(--c4);
+  border-radius:14px;
+  padding:1.4rem 1.3rem;
+  border:1.5px solid rgba(53,88,114,.08);
+  display:flex;flex-direction:column;gap:.5rem;
+  transition:transform var(--t),box-shadow var(--t),border-color var(--t);
+}
+.why-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(53,88,114,.12);border-color:var(--c3);}
+.why-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;margin-bottom:.3rem;
+}
+.why-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--c1);}
+.why-desc{font-size:.8rem;color:#6b8499;line-height:1.55;}
+
+/* ANNOUNCEMENT STRIP */
+.announce-strip{
+  background:linear-gradient(90deg,var(--c1d),var(--c1));
+  padding:.7rem 2.5rem;
+  display:flex;align-items:center;gap:.8rem;
+  flex-wrap:wrap;
+}
+.announce-strip .ann-badge{
+  background:var(--c3);color:var(--c1);
+  font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:.18rem .6rem;border-radius:50px;flex-shrink:0;
+}
+.announce-strip p{font-size:.82rem;color:rgba(247,248,240,.85);line-height:1.4;}
+footer{background:var(--c1);color:rgba(247,248,240,.7);text-align:center;padding:1.5rem 2rem;font-size:.83rem;margin-top:auto;}
+footer strong{color:var(--c3);}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .5s ease,transform .5s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+
+/* ── ACTION BANNER (About page) ── */
+.action-banner{
+  background:linear-gradient(135deg,var(--c1d) 0%,var(--c1) 55%,var(--c2) 100%);
+  border-radius:16px;
+  padding:1.8rem 2rem;
+  margin-bottom:2rem;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:1.4rem;
+  position:relative;overflow:hidden;
+  box-shadow:0 8px 32px rgba(53,88,114,.28);
+}
+.action-banner::before{
+  content:'';position:absolute;
+  right:-50px;top:-50px;
+  width:180px;height:180px;
+  background:rgba(156,213,255,.1);border-radius:50%;
+  pointer-events:none;
+}
+.action-banner-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.2rem;font-weight:700;color:#fff;
+  margin-bottom:.3rem;
+}
+.action-banner-sub{font-size:.82rem;color:rgba(255,255,255,.72);line-height:1.5;max-width:340px;}
+.action-btns{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;}
+
+/* Contribute Resources button */
+.contrib-btn{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(247,248,240,.12);
+  border:1.5px solid rgba(247,248,240,.3);
+  color:#fff;
+  font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:600;
+  padding:.65rem 1.4rem;border-radius:50px;
+  cursor:pointer;letter-spacing:.02em;
+  transition:background var(--t),border-color var(--t),transform .15s;
+  backdrop-filter:blur(6px);
+  white-space:nowrap;
+}
+.contrib-btn:hover{
+  background:rgba(247,248,240,.22);
+  border-color:rgba(247,248,240,.5);
+  transform:scale(1.04);
+}
+.contrib-btn:active{transform:scale(.97);}
+.contrib-btn-icon{font-size:1rem;}
+
+/* Support / Payment button */
+.support-btn{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:linear-gradient(135deg,#f5a623,#f0891a);
+  border:none;
+  color:#fff;
+  font-family:'DM Sans',sans-serif;font-size:.86rem;font-weight:700;
+  padding:.65rem 1.4rem;border-radius:50px;
+  cursor:pointer;letter-spacing:.02em;
+  text-decoration:none;
+  transition:filter var(--t),transform .15s,box-shadow var(--t);
+  box-shadow:0 4px 18px rgba(240,137,26,.4);
+  white-space:nowrap;
+  position:relative;
+  overflow:hidden;
+}
+.support-btn::after{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);
+  transform:translateX(-100%);
+  transition:transform .45s ease;
+}
+.support-btn:hover::after{transform:translateX(100%);}
+.support-btn:hover{filter:brightness(1.1);transform:scale(1.05);box-shadow:0 6px 24px rgba(240,137,26,.55);}
+.support-btn:active{transform:scale(.97);}
+.support-btn-icon{font-size:1rem;}
+.support-badge{
+  background:rgba(255,255,255,.22);
+  font-size:.65rem;font-weight:700;letter-spacing:.06em;
+  padding:.15rem .5rem;border-radius:50px;
+  text-transform:uppercase;
+  margin-left:.1rem;
+}
+
+/* ── FLOATING SUPPORT BUTTON (visible on all pages) ── */
+.float-support{
+  position:fixed;
+  bottom:1.8rem;right:1.8rem;
+  z-index:400;
+  display:inline-flex;align-items:center;gap:.55rem;
+  background:linear-gradient(135deg,#f5a623,#f0891a);
+  color:#fff;
+  font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;
+  padding:.65rem 1.35rem;
+  border-radius:50px;
+  text-decoration:none;
+  box-shadow:0 6px 24px rgba(240,137,26,.5);
+  transition:transform var(--t),box-shadow var(--t),filter var(--t);
+  letter-spacing:.02em;
+  animation:floatPop .6s .8s cubic-bezier(.4,0,.2,1) both;
+  overflow:hidden;
+}
+.float-support::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+  transform:translateX(-100%);
+  transition:transform .45s ease;
+}
+.float-support:hover::after{transform:translateX(100%);}
+.float-support:hover{transform:translateY(-3px) scale(1.05);box-shadow:0 10px 32px rgba(240,137,26,.6);filter:brightness(1.08);}
+.float-support:active{transform:scale(.97);}
+.float-support-icon{font-size:1rem;}
+.float-support-pulse{
+  position:absolute;top:6px;right:6px;
+  width:8px;height:8px;background:#fff;
+  border-radius:50%;
+  animation:floatPulse 2s infinite;
+}
+@keyframes floatPop{from{opacity:0;transform:translateY(20px) scale(.85);}to{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes floatPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.5);}}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-top">
+    <div class="nav-logo" onclick="showPage('home')">📚 <span>Uni</span>Vault</div>
+    <ul class="nav-links" id="navLinks">
+
+      <li><button onclick="showPage('home')" class="active" id="nav-home">Home</button></li>
+
+      <!-- SEMESTER 1 DROPDOWN -->
+      <li class="nav-dropdown" id="dd-sem1">
+        <button onclick="toggleDropdown('dd-sem1')">
+          Semester 1 <span class="dd-arrow">▼</span>
+        </button>
+        <div class="dd-menu">
+          <div class="dd-menu-header">Semester 1 Subjects</div>
+          <button class="dd-item" onclick="openSubject('tcs')">
+            <span class="dd-subj-name">Technical Communication Skills</span>
+            <span class="dd-subj-code">T240C1</span>
+          </button>
+          <button class="dd-item" onclick="openSubject('calculus')">
+            <span class="dd-subj-name">Calculus</span>
+            <span class="dd-subj-code">S2120C1</span>
+          </button>
+          <button class="dd-item" onclick="openSubject('physics')">
+            <span class="dd-subj-name">Physics</span>
+            <span class="dd-subj-code">S2140C1</span>
+          </button>
+          <button class="dd-item" onclick="openSubject('physics-practical')">
+            <span class="dd-subj-name">Physics Practical</span>
+            <span class="dd-subj-code">S2140C1-P</span>
+          </button>
+          <button class="dd-item" onclick="openSubject('mit')">
+            <span class="dd-subj-name">MIT</span>
+            <span class="dd-subj-code">MIT-SEM1</span>
+          </button>
+          <button class="dd-item" onclick="openSubject('python1')">
+            <span class="dd-subj-name">Python Programming - I</span>
+            <span class="dd-subj-code">C2110C1</span>
+          </button>
+          <button class="dd-item" onclick="openSubject('webtech')">
+            <span class="dd-subj-name">Web Technology</span>
+            <span class="dd-subj-code">C2111C3</span>
+          </button>
+        </div>
+      </li>
+
+      <!-- SEMESTER 2 DROPDOWN -->
+      <li class="nav-dropdown" id="dd-sem2">
+        <button onclick="toggleDropdown('dd-sem2')">
+          Semester 2 <span class="dd-arrow">▼</span>
+        </button>
+        <div class="dd-menu">
+          <div class="dd-menu-header">Semester 2 Subjects</div>
+          <button class="dd-item" onclick="openSubject('python2')">
+            <span class="dd-subj-name">Python Programming - II</span>
+            <span class="dd-subj-code">C2211C4</span>
+          </button>
+          <button class="dd-item" onclick="openSubject('c-prog')">
+            <span class="dd-subj-name">Programming in C</span>
+            <span class="dd-subj-code">C2211C1</span>
+          </button>
+          <button class="dd-item" onclick="openSubject('de')">
+            <span class="dd-subj-name">Digital Electronics</span>
+            <span class="dd-subj-code">T2280C1</span>
+          </button>
+          <button class="dd-item" onclick="openSubject('de-practical')">
+            <span class="dd-subj-name">Digital Electronics Practical</span>
+            <span class="dd-subj-code">T2280C1-P</span>
+          </button>
+          <button class="dd-item" onclick="openSubject('prob-stats')">
+            <span class="dd-subj-name">Probability &amp; Statistics using R</span>
+            <span class="dd-subj-code">S2220C1</span>
+          </button>
+          <button class="dd-item" onclick="openSubject('finance')">
+            <span class="dd-subj-name">Finance and Accounting</span>
+            <span class="dd-subj-code">B2210C1</span>
+          </button>
+        </div>
+      </li>
+
+      <li><button onclick="showPage('about')" id="nav-about">About Us</button></li>
+      <li><button onclick="showPage('contact')" id="nav-contact">Contact</button></li>
+    </ul>
+    <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+  <div class="nav-progress"><div class="nav-progress-fill" id="progressFill"></div></div>
+</nav>
+
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-badge">🎓 Student Resource Portal</div>
+    <h1>Your Academic <em>Vault</em>,<br>Always Open</h1>
+    <p>All assignments, PYQs, PPTs, MCQs and study materials — curated by students, for students.</p>
+    <!-- Search Bar -->
+    <div class="search-wrap">
+      <span class="search-icon-wrap">🔍</span>
+      <input class="search-input" type="text" placeholder="Search subjects, topics…" oninput="filterCards(this.value)"/>
+    </div>
+    <!-- Stats -->
+    <div class="hero-stats">
+      <div class="hero-stat"><span class="val">5+</span><span class="lbl">Subjects</span></div>
+      <div class="hero-stat"><span class="val">50+</span><span class="lbl">Documents</span></div>
+      <div class="hero-stat"><span class="val">200+</span><span class="lbl">MCQs</span></div>
+      <div class="hero-stat"><span class="val">100%</span><span class="lbl">Free</span></div>
+    </div>
+  </div>
+
+  <!-- Announcement Strip -->
+  <div class="announce-strip">
+    <span class="ann-badge">🆕 New</span>
+    <p>PYQ papers for End-Sem 2023-24 have been added for all subjects! Check the PYQ tab on each subject page.</p>
+  </div>
+
+  <!-- Why UniVault Section -->
+  <div class="why-section">
+    <h2 class="section-title">⚡ Why UniVault?</h2>
+    <p class="section-sub">Everything a student needs, all in one place — free, forever</p>
+    <div class="why-grid">
+      <div class="why-card reveal">
+        <div class="why-icon" style="background:rgba(53,88,114,.1);">📄</div>
+        <div class="why-title">Solved Assignments</div>
+        <div class="why-desc">Step-by-step solved assignment answers from all units, ready to study and reference.</div>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-icon" style="background:rgba(122,170,206,.15);">📜</div>
+        <div class="why-title">PYQ Papers</div>
+        <div class="why-desc">Previous Year Question papers going back multiple years — the best exam prep tool.</div>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-icon" style="background:rgba(46,160,100,.1);">✅</div>
+        <div class="why-title">Practice MCQs</div>
+        <div class="why-desc">Topic-wise MCQs with instant right/wrong feedback. Test yourself before the exam.</div>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-icon" style="background:rgba(192,92,42,.1);">📊</div>
+        <div class="why-title">Teacher PPTs</div>
+        <div class="why-desc">Official lecture slides and documents shared directly by professors.</div>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-icon" style="background:rgba(92,58,138,.1);">📓</div>
+        <div class="why-title">Study Notes</div>
+        <div class="why-desc">Handwritten and typed notes by top students — clear, concise and exam-focused.</div>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-icon" style="background:rgba(240,137,26,.12);">🚀</div>
+        <div class="why-title">Always Free</div>
+        <div class="why-desc">No login, no paywall, no ads. Every resource on UniVault is completely free for students.</div>
+      </div>
+    </div>
+  </div>
+  <div class="subjects-section">
+    <div style="margin-bottom:1.8rem;">
+      <h2 class="section-title">📖 Browse Subjects</h2>
+      <p class="section-sub">Click any subject to access all resources, materials and practice questions</p>
+    </div>
+
+    <!-- Semester 1 -->
+    <div style="margin-bottom:.8rem;display:flex;align-items:center;gap:.8rem;">
+      <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--c1);">📘 Semester 1</div>
+      <div style="flex:1;height:1px;background:rgba(53,88,114,.12);"></div>
+    </div>
+    <div class="subjects-grid" id="subjectGrid" style="margin-bottom:2.5rem;">
+
+      <div class="subject-card reveal" data-search="technical communication skills tcs t240c1" onclick="openSubject('tcs')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#355872,#7AAACE);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#355872,#7AAACE);">🗣️</div>
+          <div class="card-title">Technical Communication Skills</div>
+          <div style="font-size:.7rem;font-weight:700;color:var(--c2);letter-spacing:.06em;margin-bottom:.4rem;">T240C1</div>
+          <div class="card-desc">Communication, writing, speaking and presentation skills for engineering students.</div>
+          <div class="card-pills"><span class="pill">Assignments</span><span class="pill">PYQs</span><span class="pill">MCQs</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+      <div class="subject-card reveal" data-search="calculus mathematics s2120c1 derivatives integrals" onclick="openSubject('calculus')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#2a7a5a,#6abf90);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#2a7a5a,#6abf90);">📐</div>
+          <div class="card-title">Calculus</div>
+          <div style="font-size:.7rem;font-weight:700;color:#2a7a5a;letter-spacing:.06em;margin-bottom:.4rem;">S2120C1</div>
+          <div class="card-desc">Limits, derivatives, integrals, multivariable calculus and applications.</div>
+          <div class="card-pills"><span class="pill">Assignments</span><span class="pill">PYQs</span><span class="pill">MCQs</span><span class="pill">PPTs</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+      <div class="subject-card reveal" data-search="physics s2140c1 mechanics optics waves" onclick="openSubject('physics')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#3a6a8a,#9CD5FF);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#3a6a8a,#9CD5FF);">⚛️</div>
+          <div class="card-title">Physics</div>
+          <div style="font-size:.7rem;font-weight:700;color:#3a6a8a;letter-spacing:.06em;margin-bottom:.4rem;">S2140C1</div>
+          <div class="card-desc">Mechanics, Thermodynamics, Optics, Electromagnetism and Modern Physics.</div>
+          <div class="card-pills"><span class="pill">Assignments</span><span class="pill">PYQs</span><span class="pill">MCQs</span><span class="pill">Lab Reports</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+      <div class="subject-card reveal" data-search="physics practical s2140c1-p lab experiments" onclick="openSubject('physics-practical')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#4a7a9a,#aad5ef);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#4a7a9a,#aad5ef);">🔬</div>
+          <div class="card-title">Physics Practical</div>
+          <div style="font-size:.7rem;font-weight:700;color:#4a7a9a;letter-spacing:.06em;margin-bottom:.4rem;">S2140C1-P</div>
+          <div class="card-desc">Lab experiments, observation tables, specimen calculations and viva questions.</div>
+          <div class="card-pills"><span class="pill">Lab Manual</span><span class="pill">Reports</span><span class="pill">Viva Q&A</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+      <div class="subject-card reveal" data-search="mit management information technology mit-sem1" onclick="openSubject('mit')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#5c3a8a,#9a7ade);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#5c3a8a,#9a7ade);">🖥️</div>
+          <div class="card-title">MIT</div>
+          <div style="font-size:.7rem;font-weight:700;color:#5c3a8a;letter-spacing:.06em;margin-bottom:.4rem;">MIT-SEM1</div>
+          <div class="card-desc">Management Information Technology — IT systems, data management and applications.</div>
+          <div class="card-pills"><span class="pill">Assignments</span><span class="pill">PYQs</span><span class="pill">MCQs</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+      <div class="subject-card reveal" data-search="python programming 1 c2110c1 basics functions" onclick="openSubject('python1')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#1a6a4a,#4abf8a);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#1a6a4a,#4abf8a);">🐍</div>
+          <div class="card-title">Python Programming - I</div>
+          <div style="font-size:.7rem;font-weight:700;color:#1a6a4a;letter-spacing:.06em;margin-bottom:.4rem;">C2110C1</div>
+          <div class="card-desc">Python basics, data types, control flow, functions, file handling and modules.</div>
+          <div class="card-pills"><span class="pill">Assignments</span><span class="pill">PYQs</span><span class="pill">Programs</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+      <div class="subject-card reveal" data-search="web technology c2111c3 html css javascript" onclick="openSubject('webtech')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#c05c2a,#e07a50);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#c05c2a,#e07a50);">🌐</div>
+          <div class="card-title">Web Technology</div>
+          <div style="font-size:.7rem;font-weight:700;color:#c05c2a;letter-spacing:.06em;margin-bottom:.4rem;">C2111C3</div>
+          <div class="card-desc">HTML, CSS, JavaScript, PHP, databases and modern web development fundamentals.</div>
+          <div class="card-pills"><span class="pill">Assignments</span><span class="pill">PYQs</span><span class="pill">Programs</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Semester 2 -->
+    <div style="margin-bottom:.8rem;display:flex;align-items:center;gap:.8rem;">
+      <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--c1);">📗 Semester 2</div>
+      <div style="flex:1;height:1px;background:rgba(53,88,114,.12);"></div>
+    </div>
+    <div class="subjects-grid" id="subjectGrid2">
+
+      <div class="subject-card reveal" data-search="python programming 2 c2211c4 advanced oop" onclick="openSubject('python2')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#1a5a3a,#3abf7a);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#1a5a3a,#3abf7a);">🐍</div>
+          <div class="card-title">Python Programming - II</div>
+          <div style="font-size:.7rem;font-weight:700;color:#1a5a3a;letter-spacing:.06em;margin-bottom:.4rem;">C2211C4</div>
+          <div class="card-desc">Advanced Python — OOP, data structures, libraries, NumPy, Pandas and projects.</div>
+          <div class="card-pills"><span class="pill">Assignments</span><span class="pill">PYQs</span><span class="pill">Programs</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+      <div class="subject-card reveal" data-search="programming in c c2211c1 pointers arrays" onclick="openSubject('c-prog')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#355872,#9CD5FF);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#355872,#9CD5FF);">💻</div>
+          <div class="card-title">Programming in C</div>
+          <div style="font-size:.7rem;font-weight:700;color:var(--c1);letter-spacing:.06em;margin-bottom:.4rem;">C2211C1</div>
+          <div class="card-desc">C language fundamentals, arrays, pointers, structures, file I/O and dynamic memory.</div>
+          <div class="card-pills"><span class="pill">Assignments</span><span class="pill">PYQs</span><span class="pill">Programs</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+      <div class="subject-card reveal" data-search="digital electronics t2280c1 logic gates circuits" onclick="openSubject('de')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#7a4a1a,#e0a050);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#7a4a1a,#e0a050);">⚡</div>
+          <div class="card-title">Digital Electronics</div>
+          <div style="font-size:.7rem;font-weight:700;color:#7a4a1a;letter-spacing:.06em;margin-bottom:.4rem;">T2280C1</div>
+          <div class="card-desc">Logic gates, Boolean algebra, combinational and sequential circuits, flip-flops.</div>
+          <div class="card-pills"><span class="pill">Assignments</span><span class="pill">PYQs</span><span class="pill">MCQs</span><span class="pill">PPTs</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+      <div class="subject-card reveal" data-search="digital electronics practical t2280c1-p lab" onclick="openSubject('de-practical')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#8a5a1a,#f0b870);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#8a5a1a,#f0b870);">🔌</div>
+          <div class="card-title">Digital Electronics Practical</div>
+          <div style="font-size:.7rem;font-weight:700;color:#8a5a1a;letter-spacing:.06em;margin-bottom:.4rem;">T2280C1-P</div>
+          <div class="card-desc">Lab experiments on logic gates, MUX, decoders, registers and counters with circuit diagrams.</div>
+          <div class="card-pills"><span class="pill">Lab Manual</span><span class="pill">Reports</span><span class="pill">Viva Q&A</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+      <div class="subject-card reveal" data-search="probability statistics r s2220c1 distributions" onclick="openSubject('prob-stats')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#2a4a8a,#6a8ade);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#2a4a8a,#6a8ade);">📊</div>
+          <div class="card-title">Probability &amp; Statistics using R</div>
+          <div style="font-size:.7rem;font-weight:700;color:#2a4a8a;letter-spacing:.06em;margin-bottom:.4rem;">S2220C1</div>
+          <div class="card-desc">Probability theory, statistical distributions, hypothesis testing and R programming.</div>
+          <div class="card-pills"><span class="pill">Assignments</span><span class="pill">PYQs</span><span class="pill">MCQs</span><span class="pill">R Code</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+      <div class="subject-card reveal" data-search="finance accounting b2210c1 balance sheet" onclick="openSubject('finance')">
+        <div class="card-stripe" style="background:linear-gradient(90deg,#1a6a3a,#5abf8a);"></div>
+        <div class="card-body">
+          <div class="card-icon" style="background:linear-gradient(135deg,#1a6a3a,#5abf8a);">💰</div>
+          <div class="card-title">Finance and Accounting</div>
+          <div style="font-size:.7rem;font-weight:700;color:#1a6a3a;letter-spacing:.06em;margin-bottom:.4rem;">B2210C1</div>
+          <div class="card-desc">Financial statements, accounting principles, ratio analysis and business finance.</div>
+          <div class="card-pills"><span class="pill">Assignments</span><span class="pill">PYQs</span><span class="pill">MCQs</span></div>
+          <button class="card-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>Explore</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <footer>Made with ❤️ by students, for students &nbsp;|&nbsp; <strong>UniVault</strong> © 2024</footer>
+</div>
+
+<!-- SUBJECT PAGE -->
+<div class="page" id="page-subject">
+  <div class="subject-hero">
+    <button class="back-btn" onclick="showPage('home')">← Back to Subjects</button>
+    <div class="subject-title" id="subject-title-text">Subject</div>
+    <div style="display:flex;align-items:center;gap:.7rem;margin-top:.4rem;flex-wrap:wrap;">
+      <span style="background:rgba(156,213,255,.25);border:1px solid rgba(156,213,255,.45);color:var(--c3);font-size:.72rem;font-weight:700;letter-spacing:.1em;padding:.22rem .75rem;border-radius:50px;" id="subject-code-badge">CODE</span>
+      <span style="color:rgba(247,248,240,.72);font-size:.88rem;" id="subject-subtitle-text">Complete study resources</span>
+    </div>
+    <div class="subject-meta" id="subject-meta-area"></div>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('overview')">📋 Overview</button>
+    <button class="tab-btn" onclick="switchTab('assignments')">📄 Assignments</button>
+    <button class="tab-btn" onclick="switchTab('pyq')">📜 PYQ Papers</button>
+    <button class="tab-btn" onclick="switchTab('mcq')">✅ Practice MCQs</button>
+    <button class="tab-btn" onclick="switchTab('ppt')">📊 PPTs & Docs</button>
+    <button class="tab-btn" onclick="switchTab('notes')">📓 Notes</button>
+  </div>
+  <div class="tab-content active" id="tab-overview">
+    <div class="info-grid" id="subject-info-grid"></div>
+    <div id="subject-overview-content"></div>
+  </div>
+  <div class="tab-content" id="tab-assignments">
+    <div class="upload-notice"><strong>📤 Upload Your Documents Here</strong>Replace placeholders with real files. Upload PDFs and add links in the subject data.</div>
+    <div class="resource-grid" id="res-assignments"></div>
+  </div>
+  <div class="tab-content" id="tab-pyq">
+    <div class="upload-notice"><strong>📜 Previous Year Question Papers</strong>Real PYQ PDFs appear here once uploaded.</div>
+    <div class="resource-grid" id="res-pyq"></div>
+  </div>
+  <div class="tab-content" id="tab-mcq"><div id="mcq-container"></div></div>
+  <div class="tab-content" id="tab-ppt">
+    <div class="upload-notice"><strong>📊 Teacher-Provided PPTs & Documents</strong>Upload teacher slides and handouts here.</div>
+    <div class="resource-grid" id="res-ppt"></div>
+  </div>
+  <div class="tab-content" id="tab-notes">
+    <div class="upload-notice"><strong>📓 Study Notes & Learning Material</strong>Handwritten notes, summaries and reference material.</div>
+    <div class="resource-grid" id="res-notes"></div>
+  </div>
+  <footer>Made with ❤️ by students, for students &nbsp;|&nbsp; <strong>UniVault</strong> © 2024</footer>
+</div>
+
+<!-- ABOUT PAGE -->
+<div class="page" id="page-about">
+  <div class="about-hero">
+    <div class="hero-badge">👥 Our Team</div>
+    <h1>About UniVault</h1>
+    <p>A student-built platform to make academic resources accessible for every junior.</p>
+  </div>
+  <div class="about-content">
+    <div class="overview-block" style="margin-top:2rem;">
+      <h3>🎯 Our Mission</h3>
+      <p>UniVault was created by students who understand the struggle of finding good study materials. We collect, organize and share everything in one place.</p>
+    </div>
+    <div class="overview-block">
+      <h3>📌 What We Offer</h3>
+      <ul>
+        <li>Curated assignments with solutions from all semesters</li>
+        <li>Previous Year Question (PYQ) papers with answer keys</li>
+        <li>Practice MCQs with instant feedback for exam preparation</li>
+        <li>Teacher-provided PPTs and official documents</li>
+        <li>Handwritten and typed study notes from toppers</li>
+        <li>Subject-wise organized content for quick access</li>
+      </ul>
+    </div>
+
+    <!-- ── ACTION BUTTONS BLOCK ── -->
+    <div class="action-banner">
+      <div class="action-banner-text">
+        <div class="action-banner-title">💡 Help Us Grow</div>
+        <div class="action-banner-sub">Contribute your notes or support us financially — every bit helps UniVault reach more students.</div>
+      </div>
+      <div class="action-btns">
+        <!-- Contribute Resources -->
+        <button class="contrib-btn" onclick="showPage('contact')">
+          <span class="contrib-btn-icon">📚</span>
+          Contribute Resources
+        </button>
+        <!-- Support / Payment -->
+        <a class="support-btn" href="https://razorpay.me/@aarya5460" target="_blank" rel="noopener noreferrer">
+          <span class="support-btn-icon">💳</span>
+          Support Us
+          <span class="support-badge">Razorpay</span>
+        </a>
+      </div>
+    </div>
+
+    <h2 class="section-title" style="margin-bottom:.4rem;">Meet the Team</h2>
+    <p class="section-sub">The students behind UniVault</p>
+    <div class="team-grid">
+      <div class="team-card"><div class="team-avatar">👨‍💻</div><div class="team-name">Your Name</div><div class="team-role">Co-Founder & Developer</div></div>
+      <div class="team-card"><div class="team-avatar">👩‍💻</div><div class="team-name">Friend's Name</div><div class="team-role">Co-Founder & Content Lead</div></div>
+      <div class="team-card"><div class="team-avatar">🎓</div><div class="team-name">Your University</div><div class="team-role">B.Tech / B.Sc — Year X</div></div>
+    </div>
+  </div>
+  <footer>Made with ❤️ by students, for students &nbsp;|&nbsp; <strong>UniVault</strong> © 2024</footer>
+</div>
+
+<!-- CONTACT PAGE -->
+<div class="page" id="page-contact">
+  <div class="contact-hero">
+    <div class="hero-badge">📬 Get in Touch</div>
+    <h1>Contact Us</h1>
+    <p>Have a question, want to contribute, or found an issue? Reach out!</p>
+  </div>
+  <div class="contact-content">
+    <div class="overview-block" style="margin:2rem 0 1.5rem;">
+      <h3>📧 Contact Information</h3>
+      <p>Email: <strong style="color:var(--c1)"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d6a3b8bfa0b7a3baa296afb9a3a4a3b8bfa0b3a4a5bfa2aff8b7b5f8bfb8">[email&#160;protected]</a></strong><br><br>WhatsApp Group: <strong style="color:var(--c1)">Ask us for the link</strong></p>
+    </div>
+    <div class="contact-form">
+      <h3 style="font-family:'Playfair Display',serif;color:var(--c1);margin-bottom:1.4rem;font-size:1.2rem;">Send a Message</h3>
+      <div class="form-group"><label>Your Name</label><input type="text" placeholder="e.g. Rahul Sharma"/></div>
+      <div class="form-group"><label>Email Address</label><input type="email" placeholder="rahul@student.ac.in"/></div>
+      <div class="form-group"><label>Subject</label><select><option>Request a document</option><option>Report an error</option><option>Contribute material</option><option>General inquiry</option></select></div>
+      <div class="form-group"><label>Your Message</label><textarea placeholder="Describe your query or suggestion here..."></textarea></div>
+      <button class="submit-btn" onclick="handleSubmit()">📨 Send Message</button>
+    </div>
+  </div>
+  <footer>Made with ❤️ by students, for students &nbsp;|&nbsp; <strong>UniVault</strong> © 2024</footer>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-title">Document Preview</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="preview-placeholder">
+        <div class="big-icon" id="modal-icon">📄</div>
+        <p><strong id="modal-doc-name">Document Name</strong><br>Upload the actual file to enable preview. Click Download to get the document.</p>
+        <button class="btn-download" onclick="closeModal()" style="margin-top:.5rem;padding:.6rem 1.4rem;font-size:.88rem;">⬇ Download Document</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><!-- FLOATING SUPPORT BUTTON -->
+<a class="float-support" href="https://razorpay.me/@aarya5460" target="_blank" rel="noopener noreferrer">
+  <span class="float-support-pulse"></span>
+  <span class="float-support-icon">💳</span>
+  Support Us
+</a>
+
+<script>
+const subjects = {
+  tcs:{title:'Technical Communication Skills',code:'T240C1',emoji:'🗣️',sem:'Semester 1',subtitle:'Communication and writing skills for engineering students',meta:[{icon:'📚',text:'4 Units'},{icon:'📄',text:'Assignments'},{icon:'📜',text:'PYQs'},{icon:'✅',text:'MCQs'}],overview:`<div class="overview-block"><h3>📌 Subject Overview</h3><p>Technical Communication Skills (T240C1) develops professional communication abilities essential for engineering careers.</p><ul><li><strong>Unit 1:</strong> Technical Writing — Reports, Emails, Letters, Memos</li><li><strong>Unit 2:</strong> Oral Communication — Presentations, Group Discussions, Interviews</li><li><strong>Unit 3:</strong> Reading Comprehension and Vocabulary Building</li><li><strong>Unit 4:</strong> Soft Skills and Professional Etiquette</li></ul></div>`,assignments:[{name:'Unit 1 — Technical Report Writing',desc:'Format and samples of technical reports, memos and business letters.',icon:'doc'},{name:'Unit 2 — Presentation Skills',desc:'Tips, templates and evaluation criteria for oral presentations.',icon:'doc'},{name:'Unit 3 — Comprehension Exercises',desc:'Reading passages with answer key for practice.',icon:'doc'}],pyq:[{name:'End-Sem PYQ 2023-24',desc:'Full paper — Grammar, Writing, Comprehension.',icon:'pdf'},{name:'End-Sem PYQ 2022-23',desc:'Previous year paper with model answers.',icon:'pdf'},{name:'Mid-Sem PYQ 2023-24',desc:'Mid semester — Units 1 and 2.',icon:'pdf'}],ppt:[{name:'Technical Writing — Teacher PPT',desc:'Official lecture slides on report and email writing.',icon:'ppt'},{name:'Oral Communication — Teacher PPT',desc:'Presentation techniques and GD strategies.',icon:'ppt'}],notes:[{name:'Grammar Quick Reference',desc:'All grammar rules in compact cheat-sheet format.',icon:'doc'},{name:'150 One-Word Substitutions',desc:'Most frequently asked in exams.',icon:'pdf'}],mcq:[{q:'Which of these is NOT a technical report?',opts:['Feasibility Report','Progress Report','Nursery Rhyme','Lab Report'],ans:2},{q:'A memo is written for:',opts:['External communication','Internal communication','Personal diary','Social media'],ans:1},{q:'GD stands for:',opts:['Group Discussion','General Debate','Grand Design','Group Decision'],ans:0}]},
+  calculus:{title:'Calculus',code:'S2120C1',emoji:'📐',sem:'Semester 1',subtitle:'Differential and Integral Calculus for engineering students',meta:[{icon:'📚',text:'5 Units'},{icon:'📄',text:'Assignments'},{icon:'📜',text:'PYQs'},{icon:'✅',text:'100+ MCQs'}],overview:`<div class="overview-block"><h3>📌 Subject Overview</h3><p>Calculus (S2120C1) forms the mathematical backbone of all engineering disciplines.</p><ul><li><strong>Unit 1:</strong> Limits and Continuity &#8212; Epsilon-delta, LHopital Rule</li><li><strong>Unit 2:</strong> Differential Calculus &#8212; Derivatives, Maxima-Minima, Taylor Series</li><li><strong>Unit 3:</strong> Integral Calculus &#8212; Indefinite and Definite Integrals, Beta-Gamma</li><li><strong>Unit 4:</strong> Multivariable Calculus &#8212; Partial Derivatives, Jacobians, Double Integrals</li><li><strong>Unit 5:</strong> Differential Equations &#8212; First and Second Order ODEs</li></ul></div>`,assignments:[{name:'Unit 1 &#8212; Limits and Continuity',desc:'Problems on limits, continuity and rules with solutions.',icon:'doc'},{name:'Unit 2 &#8212; Differential Calculus',desc:'Maxima-minima, Taylor series problems.',icon:'doc'},{name:'Unit 3 &#8212; Integral Calculus',desc:'Integration techniques and Beta-Gamma problems.',icon:'doc'},{name:'Unit 4 &#8212; Multivariable Calculus',desc:'Partial derivatives and double integration problems.',icon:'doc'}],pyq:[{name:'End-Sem PYQ 2023-24',desc:'Full 80-mark paper — all 5 units, 3 hours.',icon:'pdf'},{name:'End-Sem PYQ 2022-23',desc:'Previous year paper with expected answers.',icon:'pdf'},{name:'Mid-Sem PYQ 2023-24',desc:'Mid semester — Units 1 to 3.',icon:'pdf'},{name:'Mid-Sem PYQ 2022-23',desc:'Mid semester paper with solutions.',icon:'pdf'}],ppt:[{name:'Differential Calculus — Teacher PPT',desc:'Official slides on derivatives and applications.',icon:'ppt'},{name:'Integral Calculus — Teacher PPT',desc:'Integration lecture slides with solved examples.',icon:'ppt'},{name:'Formula Sheet — Complete',desc:'All calculus formulas in one printable sheet.',icon:'pdf'}],notes:[{name:'Handwritten Notes — Units 1 to 3',desc:'Comprehensive notes with solved examples.',icon:'doc'},{name:'Quick Revision — All Units',desc:'Short summary notes for last-minute exam prep.',icon:'doc'}],mcq:[{q:'Derivative of sin(x) is:',opts:['cos(x)','-cos(x)','sin(x)','-sin(x)'],ans:0},{q:'Integral of 1/x is:',opts:['x^2/2','ln|x|+C','1/x^2+C','e^x+C'],ans:1},{q:'lim(x to 0) sin(x)/x equals:',opts:['0','infinity','1','undefined'],ans:2},{q:"LHopital rule is used when limit form is:",opts:['0/0 or inf/inf','0+inf','1/0','inf-inf only'],ans:0}]},
+  physics:{title:'Physics',code:'S2140C1',emoji:'⚛️',sem:'Semester 1',subtitle:'Engineering Physics — fundamental science for engineers',meta:[{icon:'📚',text:'5 Units'},{icon:'📄',text:'Assignments'},{icon:'📜',text:'PYQs'},{icon:'🔬',text:'Lab Linked'}],overview:`<div class="overview-block"><h3>📌 Subject Overview</h3><p>Physics (S2140C1) provides the scientific foundation for engineering branches.</p><ul><li><strong>Unit 1:</strong> Oscillations and Waves — SHM, Damping, Resonance</li><li><strong>Unit 2:</strong> Optics — Interference, Diffraction, Polarization, Lasers</li><li><strong>Unit 3:</strong> Electromagnetism — Maxwell Equations, EM Waves</li><li><strong>Unit 4:</strong> Modern Physics — Photoelectric Effect, de Broglie, Bohr Model</li><li><strong>Unit 5:</strong> Semiconductor Physics and Quantum Mechanics</li></ul></div>`,assignments:[{name:'Unit 1 — Oscillations',desc:'SHM, damped and forced oscillation problems.',icon:'doc'},{name:'Unit 2 — Optics',desc:'Interference, diffraction and polarization numericals.',icon:'doc'},{name:'Unit 3 — Electromagnetism',desc:'Maxwell equations and EM wave problems.',icon:'doc'},{name:'Unit 4 — Modern Physics',desc:'Photoelectric effect and Bohr model numericals.',icon:'doc'}],pyq:[{name:'End-Sem PYQ 2023-24',desc:'Full 80-mark paper — 3 hours, all units.',icon:'pdf'},{name:'End-Sem PYQ 2022-23',desc:'Previous year paper with solutions.',icon:'pdf'},{name:'Mid-Sem PYQ 2023-24',desc:'Mid semester — Units 1 and 2.',icon:'pdf'}],ppt:[{name:'Oscillations — Teacher PPT',desc:'Official lecture slides on SHM and waves.',icon:'ppt'},{name:'Optics — Teacher PPT',desc:'Interference and diffraction slides.',icon:'ppt'},{name:'Physics Formula Sheet',desc:'All formulas, constants and conversions.',icon:'pdf'}],notes:[{name:'Handwritten Notes — Units 1-3',desc:'Comprehensive notes with all derivations.',icon:'doc'},{name:'Formula Booklet',desc:'All formulas and important constants.',icon:'pdf'}],mcq:[{q:'Time period of a simple pendulum depends on:',opts:['Mass','Length','Amplitude','Color'],ans:1},{q:'Speed of light in vacuum is:',opts:['3e6 m/s','3e8 m/s','3e10 m/s','3e4 m/s'],ans:1},{q:'Photoelectric effect proves:',opts:['Wave nature of light','Particle nature of light','Dual nature of electron','Refraction'],ans:1}]},
+  'physics-practical':{title:'Physics Practical',code:'S2140C1-P',emoji:'🔬',sem:'Semester 1',subtitle:'Lab experiments linked to Physics (S2140C1)',meta:[{icon:'🔬',text:'10 Experiments'},{icon:'📋',text:'Lab Manual'},{icon:'📝',text:'Viva Q&A'},{icon:'📊',text:'Observation Tables'}],overview:`<div class="overview-block"><h3>📌 Practical Overview</h3><p>Physics Practical (S2140C1-P) consists of 10 mandatory lab experiments that reinforce concepts from the Physics theory course.</p><ul><li>Experiment 1: Verification of Ohm Law</li><li>Experiment 2: Wavelength using Diffraction Grating</li><li>Experiment 3: Newtons Rings</li><li>Experiment 4: Determination of Planck Constant</li><li>Experiment 5: Resonance Tube — Speed of Sound</li><li>Experiment 6–10: As per syllabus</li></ul></div>`,assignments:[{name:'Lab Manual — All 10 Experiments',desc:'Procedures, apparatus, diagrams and observation tables.',icon:'doc'},{name:'Specimen Calculations — Experiments 1-5',desc:'Sample calculations with expected results.',icon:'doc'}],pyq:[{name:'Viva Questions 2023-24',desc:'Commonly asked viva questions with model answers.',icon:'pdf'},{name:'Viva Questions 2022-23',desc:'Previous year viva bank.',icon:'pdf'}],ppt:[{name:'Lab Introduction Slides',desc:'Safety guidelines and how to write lab reports.',icon:'ppt'}],notes:[{name:'Quick Viva Answers',desc:'Concise answers to frequently asked viva questions.',icon:'doc'},{name:'Error Analysis Guide',desc:'How to calculate and report experimental errors.',icon:'pdf'}],mcq:[{q:"Newtons Rings experiment uses which principle?",opts:['Diffraction','Interference','Polarization','Reflection'],ans:1},{q:"Planck constant units are:",opts:['Joule','Joule·second','Watt','Newton'],ans:1},{q:'Resonance occurs when air column length is:',opts:['Even multiple of wavelength','Odd multiple of quarter wavelength','Half wavelength only','Full wavelength only'],ans:1}]},
+  mit:{title:'MIT',code:'MIT-SEM1',emoji:'🖥️',sem:'Semester 1',subtitle:'Management Information Technology — IT systems and applications',meta:[{icon:'📚',text:'4 Units'},{icon:'📄',text:'Assignments'},{icon:'📜',text:'PYQs'},{icon:'✅',text:'MCQs'}],overview:`<div class="overview-block"><h3>📌 Subject Overview</h3><p>MIT (MIT-SEM1) covers the role of information technology in modern management — from database systems to IT infrastructure and enterprise applications.</p><ul><li><strong>Unit 1:</strong> Introduction to Information Systems and IT Infrastructure</li><li><strong>Unit 2:</strong> Database Management — DBMS, SQL, ER Diagrams</li><li><strong>Unit 3:</strong> Enterprise Applications — ERP, CRM, SCM systems</li><li><strong>Unit 4:</strong> IT Security, E-Commerce and Emerging Technologies</li></ul></div>`,assignments:[{name:'Unit 1 — Information Systems',desc:'Types of information systems and IT infrastructure questions.',icon:'doc'},{name:'Unit 2 — Database and SQL',desc:'SQL queries, ER diagrams and normalization problems.',icon:'doc'},{name:'Unit 3 — Enterprise Systems',desc:'ERP, CRM and SCM concept questions.',icon:'doc'}],pyq:[{name:'End-Sem PYQ 2023-24',desc:'Full MIT theory paper — all units.',icon:'pdf'},{name:'End-Sem PYQ 2022-23',desc:'Previous year paper with model answers.',icon:'pdf'},{name:'Mid-Sem PYQ 2023-24',desc:'Mid semester — Units 1 and 2.',icon:'pdf'}],ppt:[{name:'Unit 1 — Information Systems PPT',desc:'Official lecture slides on IT infrastructure.',icon:'ppt'},{name:'Unit 2 — DBMS PPT',desc:'Database concepts, SQL and ER diagram slides.',icon:'ppt'}],notes:[{name:'MIT Quick Notes — All Units',desc:'Compact notes covering all important topics.',icon:'doc'},{name:'SQL Cheat Sheet',desc:'All SQL commands with syntax and examples.',icon:'pdf'}],mcq:[{q:'ERP stands for:',opts:['Enterprise Resource Planning','Electronic Resource Program','Enterprise Retail Processing','Extended Resource Planning'],ans:0},{q:'Which is a relational database?',opts:['MongoDB','MySQL','Redis','Cassandra'],ans:1},{q:'CRM is used to manage:',opts:['Supplier relationships','Customer relationships','Employee payroll','Inventory'],ans:1}]},
+  python1:{title:'Python Programming - I',code:'C2110C1',emoji:'🐍',sem:'Semester 1',subtitle:'Introduction to Python programming language',meta:[{icon:'📚',text:'5 Units'},{icon:'💻',text:'Programs'},{icon:'📜',text:'PYQs'},{icon:'✅',text:'MCQs'}],overview:`<div class="overview-block"><h3>📌 Subject Overview</h3><p>Python Programming I (C2110C1) introduces students to programming through Python — from data types to file handling and modules.</p><ul><li><strong>Unit 1:</strong> Introduction — variables, data types, operators, I/O</li><li><strong>Unit 2:</strong> Control Flow — if-else, for, while, break, continue</li><li><strong>Unit 3:</strong> Functions — def, arguments, return, recursion, lambda</li><li><strong>Unit 4:</strong> Data Structures — lists, tuples, dictionaries, sets</li><li><strong>Unit 5:</strong> File Handling and Modules — open(), read/write, import, os, math</li></ul></div>`,assignments:[{name:'Unit 1 — Python Basics Programs',desc:'Programs on variables, data types and operators.',icon:'doc'},{name:'Unit 2 — Control Flow Programs',desc:'Programs using if-else, for and while loops.',icon:'doc'},{name:'Unit 3 — Functions Programs',desc:'Functions, recursion and lambda programs.',icon:'doc'},{name:'Unit 4 — Data Structures Programs',desc:'List, tuple, dictionary and set programs.',icon:'doc'}],pyq:[{name:'End-Sem PYQ 2023-24',desc:'Full Python I paper — theory and programs.',icon:'pdf'},{name:'End-Sem PYQ 2022-23',desc:'Previous year with expected outputs.',icon:'pdf'},{name:'Mid-Sem PYQ 2023-24',desc:'Mid semester — Units 1 to 3.',icon:'pdf'}],ppt:[{name:'Python Basics — Teacher PPT',desc:'Official slides on Python introduction and data types.',icon:'ppt'},{name:'Control Flow and Functions — Teacher PPT',desc:'Loops and function concept slides.',icon:'ppt'}],notes:[{name:'Python Quick Reference Card',desc:'All syntax and built-in functions on one page.',icon:'doc'},{name:'50 Common Programs for Exam',desc:'Most commonly asked Python programs with outputs.',icon:'pdf'}],mcq:[{q:'Which keyword defines a function in Python?',opts:['func','define','def','function'],ans:2},{q:'Which is a valid Python dictionary?',opts:["{'a':1,'b':2}",'[a=1,b=2]','(a,1,b,2)','a:1,b:2'],ans:0},{q:'range(1,5) generates:',opts:['1 2 3 4 5','1 2 3 4','0 1 2 3 4','1 to 5'],ans:1},{q:'Type of 3.14 in Python is:',opts:['int','float','double','decimal'],ans:1}]},
+  webtech:{title:'Web Technology',code:'C2111C3',emoji:'🌐',sem:'Semester 1',subtitle:'HTML, CSS, JavaScript and modern web development',meta:[{icon:'📚',text:'5 Units'},{icon:'💻',text:'Programs'},{icon:'📜',text:'PYQs'},{icon:'✅',text:'MCQs'}],overview:`<div class="overview-block"><h3>📌 Subject Overview</h3><p>Web Technology (C2111C3) covers all fundamentals of building websites — from HTML structure to JavaScript interactivity and server-side PHP.</p><ul><li><strong>Unit 1:</strong> HTML5 — Structure, tags, forms, tables, semantic elements</li><li><strong>Unit 2:</strong> CSS3 — Selectors, box model, flexbox, grid, animations</li><li><strong>Unit 3:</strong> JavaScript — DOM, events, functions, arrays, fetch API</li><li><strong>Unit 4:</strong> PHP and MySQL — Server-side scripting, form handling, CRUD</li><li><strong>Unit 5:</strong> Web Frameworks Overview and Deployment basics</li></ul></div>`,assignments:[{name:'Unit 1 — HTML Programs',desc:'Web pages with forms, tables and semantic HTML5.',icon:'doc'},{name:'Unit 2 — CSS Styling',desc:'Styled pages using Flexbox, Grid and CSS animations.',icon:'doc'},{name:'Unit 3 — JavaScript Programs',desc:'DOM manipulation, form validation and event handling.',icon:'doc'},{name:'Unit 4 — PHP and MySQL',desc:'Login system and CRUD application.',icon:'doc'}],pyq:[{name:'End-Sem PYQ 2023-24',desc:'Full Web Technology paper — theory and programs.',icon:'pdf'},{name:'End-Sem PYQ 2022-23',desc:'Previous year with expected code.',icon:'pdf'},{name:'Mid-Sem PYQ 2023-24',desc:'Mid semester — HTML, CSS and JavaScript.',icon:'pdf'}],ppt:[{name:'HTML5 and CSS3 — Teacher PPT',desc:'Official slides on web structure and styling.',icon:'ppt'},{name:'JavaScript — Teacher PPT',desc:'DOM, events and JS functions lecture slides.',icon:'ppt'}],notes:[{name:'HTML5 Tags Cheat Sheet',desc:'All important HTML tags with usage examples.',icon:'doc'},{name:'JavaScript Quick Reference',desc:'DOM methods, event listeners and array functions.',icon:'pdf'}],mcq:[{q:'HTML stands for:',opts:['Hyper Text Markup Language','High Tech Modern Language','Hyper Transfer Markup Link','Hyperlink Text Management Language'],ans:0},{q:'Which CSS property controls text color?',opts:['font-color','text-color','color','background-color'],ans:2},{q:'PHP files have the extension:',opts:['.html','.js','.php','.py'],ans:2},{q:'document.getElementById() returns:',opts:['All matching elements','The first matching element','An array','Nothing'],ans:1}]},
+  python2:{title:'Python Programming - II',code:'C2211C4',emoji:'🐍',sem:'Semester 2',subtitle:'Advanced Python — OOP, libraries and data analysis',meta:[{icon:'📚',text:'5 Units'},{icon:'💻',text:'Programs'},{icon:'📜',text:'PYQs'},{icon:'✅',text:'MCQs'}],overview:`<div class="overview-block"><h3>📌 Subject Overview</h3><p>Python Programming II (C2211C4) builds on Semester 1 basics. Focuses on OOP, data analysis libraries and project development.</p><ul><li><strong>Unit 1:</strong> OOP — Classes, Objects, Inheritance, Polymorphism, Encapsulation</li><li><strong>Unit 2:</strong> Exception Handling and File Operations</li><li><strong>Unit 3:</strong> NumPy and Pandas — Arrays, DataFrames, data manipulation</li><li><strong>Unit 4:</strong> Matplotlib and Data Visualization</li><li><strong>Unit 5:</strong> Mini Project — End-to-end Python application</li></ul></div>`,assignments:[{name:'Unit 1 — OOP Programs',desc:'Classes, inheritance and polymorphism programs.',icon:'doc'},{name:'Unit 2 — Exception Handling',desc:'try/except, custom exceptions and file handling.',icon:'doc'},{name:'Unit 3 — NumPy and Pandas',desc:'Array operations and DataFrame manipulation.',icon:'doc'},{name:'Unit 4 — Matplotlib',desc:'Line, bar, scatter and pie chart programs.',icon:'doc'}],pyq:[{name:'End-Sem PYQ 2023-24',desc:'Full Python II paper — OOP, libraries and programs.',icon:'pdf'},{name:'End-Sem PYQ 2022-23',desc:'Previous year with expected outputs.',icon:'pdf'},{name:'Mid-Sem PYQ 2023-24',desc:'Mid semester — OOP and exception handling.',icon:'pdf'}],ppt:[{name:'OOP in Python — Teacher PPT',desc:'Official slides on classes and inheritance.',icon:'ppt'},{name:'NumPy and Pandas — Teacher PPT',desc:'Data analysis library lecture slides.',icon:'ppt'}],notes:[{name:'OOP Quick Reference',desc:'Classes, inheritance and special methods cheat sheet.',icon:'doc'},{name:'NumPy and Pandas Cheat Sheet',desc:'Most used functions and methods with examples.',icon:'pdf'}],mcq:[{q:'Which method is called when an object is created?',opts:['__start__','__create__','__init__','__new__'],ans:2},{q:'Inheritance allows a class to:',opts:['Delete methods','Reuse code from another class','Run faster','Use less memory'],ans:1},{q:'NumPy is used for:',opts:['Web development','Numerical computing','Database queries','Networking'],ans:1}]},
+  'c-prog':{title:'Programming in C',code:'C2211C1',emoji:'💻',sem:'Semester 2',subtitle:'C language — the foundation of system programming',meta:[{icon:'📚',text:'5 Units'},{icon:'💻',text:'Programs'},{icon:'📜',text:'PYQs'},{icon:'✅',text:'MCQs'}],overview:`<div class="overview-block"><h3>📌 Subject Overview</h3><p>Programming in C (C2211C1) teaches C — one of the most fundamental programming languages — from basic syntax to dynamic memory and file I/O.</p><ul><li><strong>Unit 1:</strong> Basics — Tokens, data types, operators, control structures</li><li><strong>Unit 2:</strong> Arrays and Strings — 1D/2D arrays, string functions</li><li><strong>Unit 3:</strong> Functions — Recursion, storage classes, scope</li><li><strong>Unit 4:</strong> Pointers and Structures — Pointer arithmetic, structs, unions</li><li><strong>Unit 5:</strong> File Handling and Dynamic Memory — fopen, malloc, calloc, free</li></ul></div>`,assignments:[{name:'Unit 1 — Basic C Programs',desc:'Programs on data types, operators, if-else and loops.',icon:'doc'},{name:'Unit 2 — Arrays and Strings',desc:'Matrix operations and string manipulation.',icon:'doc'},{name:'Unit 3 — Functions and Recursion',desc:'Factorial, Fibonacci and recursion programs.',icon:'doc'},{name:'Unit 4 — Pointers and Structures',desc:'Pointer arithmetic and structure programs.',icon:'doc'}],pyq:[{name:'End-Sem PYQ 2023-24',desc:'Full C programming paper — theory and programs.',icon:'pdf'},{name:'End-Sem PYQ 2022-23',desc:'Previous year with expected output.',icon:'pdf'},{name:'Mid-Sem PYQ 2023-24',desc:'Mid semester — Units 1 to 3.',icon:'pdf'}],ppt:[{name:'C Basics — Teacher PPT',desc:'Official slides on C data types and control flow.',icon:'ppt'},{name:'Pointers and Memory — Teacher PPT',desc:'Pointer concepts and dynamic memory slides.',icon:'ppt'}],notes:[{name:'C Language Cheat Sheet',desc:'All syntax, keywords and library functions.',icon:'doc'},{name:'50 Important C Programs',desc:'Most commonly asked programs for exam prep.',icon:'pdf'}],mcq:[{q:'Which symbol accesses value at pointer address?',opts:['&','*','->','::'],ans:1},{q:'sizeof(int) on a 32-bit system is:',opts:['1','2','4','8'],ans:2},{q:'Dynamic memory allocation function:',opts:['new()','alloc()','malloc()','create()'],ans:2},{q:'printf format specifier for float:',opts:['%d','%c','%f','%s'],ans:2}]},
+  de:{title:'Digital Electronics',code:'T2280C1',emoji:'⚡',sem:'Semester 2',subtitle:'Logic gates, circuits and digital systems',meta:[{icon:'📚',text:'5 Units'},{icon:'📄',text:'Assignments'},{icon:'📜',text:'PYQs'},{icon:'✅',text:'MCQs'}],overview:`<div class="overview-block"><h3>📌 Subject Overview</h3><p>Digital Electronics (T2280C1) covers the design and analysis of digital circuits from basic logic gates to sequential circuits.</p><ul><li><strong>Unit 1:</strong> Number Systems — Binary, Octal, Hexadecimal conversions</li><li><strong>Unit 2:</strong> Boolean Algebra and Logic Gates — AND, OR, NOT, NAND, NOR, XOR</li><li><strong>Unit 3:</strong> Combinational Circuits — Adders, MUX, Decoders, Encoders</li><li><strong>Unit 4:</strong> Sequential Circuits — Flip-Flops (SR, JK, D, T), Registers, Counters</li><li><strong>Unit 5:</strong> Memory and Programmable Logic — ROM, RAM, PLA basics</li></ul></div>`,assignments:[{name:'Unit 1 — Number System Problems',desc:'Binary-Decimal-Hex conversions and arithmetic.',icon:'doc'},{name:'Unit 2 — Boolean Algebra',desc:'Simplification using Boolean laws and K-Map.',icon:'doc'},{name:'Unit 3 — Combinational Circuits',desc:'Design of adders, MUX and decoder circuits.',icon:'doc'},{name:'Unit 4 — Sequential Circuits',desc:'Flip-flop truth tables, counters and register design.',icon:'doc'}],pyq:[{name:'End-Sem PYQ 2023-24',desc:'Full Digital Electronics paper — all 5 units.',icon:'pdf'},{name:'End-Sem PYQ 2022-23',desc:'Previous year paper with solutions.',icon:'pdf'},{name:'Mid-Sem PYQ 2023-24',desc:'Mid semester — Number systems and Boolean algebra.',icon:'pdf'}],ppt:[{name:'Boolean Algebra — Teacher PPT',desc:'Official slides on gates, Boolean laws and K-Map.',icon:'ppt'},{name:'Sequential Circuits — Teacher PPT',desc:'Flip-flop and counter lecture slides.',icon:'ppt'}],notes:[{name:'Digital Electronics Formula Sheet',desc:'Truth tables, Boolean identities and K-Map rules.',icon:'doc'},{name:'Quick Revision Notes',desc:'All important circuits and their descriptions.',icon:'pdf'}],mcq:[{q:'Binary equivalent of decimal 10 is:',opts:['1010','1001','1100','0110'],ans:0},{q:'A NAND gate is equivalent to:',opts:['OR then NOT','AND then NOT','NOT then OR','XOR then NOT'],ans:1},{q:'JK flip-flop with J=1 and K=1 is in:',opts:['Set state','Reset state','Toggle state','No change'],ans:2}]},
+  'de-practical':{title:'Digital Electronics Practical',code:'T2280C1-P',emoji:'🔌',sem:'Semester 2',subtitle:'Lab experiments on digital circuits and logic gates',meta:[{icon:'🔬',text:'10 Experiments'},{icon:'📋',text:'Lab Manual'},{icon:'📝',text:'Viva Q&A'},{icon:'📊',text:'Circuit Diagrams'}],overview:`<div class="overview-block"><h3>📌 Practical Overview</h3><p>Digital Electronics Practical (T2280C1-P) involves hands-on implementation of digital circuits. All experiments are linked to theory course T2280C1.</p><ul><li>Experiment 1: Verification of Logic Gates (AND, OR, NOT, NAND, NOR)</li><li>Experiment 2: Half Adder and Full Adder</li><li>Experiment 3: Multiplexer and Demultiplexer</li><li>Experiment 4: Decoder and Encoder circuits</li><li>Experiment 5: SR and JK Flip-Flop verification</li><li>Experiment 6–10: Counters, Registers and additional circuits</li></ul></div>`,assignments:[{name:'Lab Manual — All Experiments',desc:'Aim, apparatus, circuit diagrams and observation tables.',icon:'doc'},{name:'Specimen Reports — Experiments 1-5',desc:'Completed sample reports for reference.',icon:'doc'}],pyq:[{name:'Viva Questions 2023-24',desc:'Most asked viva questions with model answers.',icon:'pdf'},{name:'Viva Questions 2022-23',desc:'Previous year viva bank with answers.',icon:'pdf'}],ppt:[{name:'Lab Safety and Report Writing',desc:'How to write DE lab reports and safety guidelines.',icon:'ppt'}],notes:[{name:'Viva Quick Answers',desc:'Short answers to all commonly asked viva questions.',icon:'doc'},{name:'IC Number Reference',desc:'All ICs used in experiments with pin diagrams.',icon:'pdf'}],mcq:[{q:'IC 7408 is used for:',opts:['NOT gate','AND gate','OR gate','NAND gate'],ans:1},{q:'A full adder has how many inputs?',opts:['1','2','3','4'],ans:2},{q:'JK flip-flop TOGGLE happens when:',opts:['J=0,K=0','J=1,K=0','J=0,K=1','J=1,K=1'],ans:3}]},
+  'prob-stats':{title:'Probability & Statistics using R',code:'S2220C1',emoji:'📊',sem:'Semester 2',subtitle:'Statistical concepts and data analysis with R programming',meta:[{icon:'📚',text:'5 Units'},{icon:'📄',text:'Assignments'},{icon:'📜',text:'PYQs'},{icon:'💻',text:'R Programs'}],overview:`<div class="overview-block"><h3>📌 Subject Overview</h3><p>Probability and Statistics using R (S2220C1) covers statistical theory with practical implementation using R — widely used in data science and research.</p><ul><li><strong>Unit 1:</strong> Probability — Sample space, events, conditional probability, Bayes theorem</li><li><strong>Unit 2:</strong> Random Variables — Discrete and continuous, expectation, variance</li><li><strong>Unit 3:</strong> Distributions — Binomial, Poisson, Normal, Exponential</li><li><strong>Unit 4:</strong> Statistical Inference — Hypothesis testing, t-test, chi-square, ANOVA</li><li><strong>Unit 5:</strong> R Programming — Data manipulation, plotting, statistical functions</li></ul></div>`,assignments:[{name:'Unit 1 — Probability Problems',desc:'Conditional probability and Bayes theorem numericals.',icon:'doc'},{name:'Unit 2 — Random Variables',desc:'Expectation, variance and moment problems.',icon:'doc'},{name:'Unit 3 — Distributions',desc:'Binomial, Poisson and Normal distribution numericals.',icon:'doc'},{name:'Unit 5 — R Programs',desc:'R code for statistical analysis and hypothesis testing.',icon:'doc'}],pyq:[{name:'End-Sem PYQ 2023-24',desc:'Full paper — theory and R programming problems.',icon:'pdf'},{name:'End-Sem PYQ 2022-23',desc:'Previous year paper with solutions.',icon:'pdf'},{name:'Mid-Sem PYQ 2023-24',desc:'Mid semester — Probability and distributions.',icon:'pdf'}],ppt:[{name:'Probability and Distributions — Teacher PPT',desc:'Official slides on distributions and probability theory.',icon:'ppt'},{name:'R Programming Introduction — Teacher PPT',desc:'Getting started with R and RStudio.',icon:'ppt'}],notes:[{name:'Statistics Formula Sheet',desc:'All distribution formulas, mean, variance and test statistics.',icon:'doc'},{name:'R Commands Cheat Sheet',desc:'Commonly used R functions for statistics.',icon:'pdf'}],mcq:[{q:'P(A|B) is called:',opts:['Joint probability','Conditional probability','Marginal probability','Posterior probability'],ans:1},{q:'Mean of Binomial distribution is:',opts:['np','npq','n/p','p/n'],ans:0},{q:'Goodness of fit test uses:',opts:['t-test','z-test','Chi-square test','F-test'],ans:2}]},
+  finance:{title:'Finance and Accounting',code:'B2210C1',emoji:'💰',sem:'Semester 2',subtitle:'Financial statements, accounting principles and business finance',meta:[{icon:'📚',text:'4 Units'},{icon:'📄',text:'Assignments'},{icon:'📜',text:'PYQs'},{icon:'✅',text:'MCQs'}],overview:`<div class="overview-block"><h3>📌 Subject Overview</h3><p>Finance and Accounting (B2210C1) introduces engineering students to the financial world — how businesses record, report and analyse financial performance.</p><ul><li><strong>Unit 1:</strong> Accounting Fundamentals — Journal, ledger, trial balance, accounting equations</li><li><strong>Unit 2:</strong> Financial Statements — Balance sheet, P&L statement, cash flow</li><li><strong>Unit 3:</strong> Financial Analysis — Ratio analysis, profitability, liquidity, solvency</li><li><strong>Unit 4:</strong> Business Finance — Capital structure, cost of capital, budgeting, NPV</li></ul></div>`,assignments:[{name:'Unit 1 — Journal and Ledger',desc:'Journal entries and ledger posting with trial balance.',icon:'doc'},{name:'Unit 2 — Financial Statements',desc:'Preparing balance sheet and P&L from trial balance.',icon:'doc'},{name:'Unit 3 — Ratio Analysis',desc:'Profitability, liquidity and solvency ratio problems.',icon:'doc'}],pyq:[{name:'End-Sem PYQ 2023-24',desc:'Full Finance and Accounting paper — all 4 units.',icon:'pdf'},{name:'End-Sem PYQ 2022-23',desc:'Previous year paper with expected answers.',icon:'pdf'},{name:'Mid-Sem PYQ 2023-24',desc:'Mid semester — Accounting fundamentals.',icon:'pdf'}],ppt:[{name:'Accounting Basics — Teacher PPT',desc:'Journal entries, ledger and trial balance slides.',icon:'ppt'},{name:'Financial Statements — Teacher PPT',desc:'Balance sheet and P&L preparation slides.',icon:'ppt'}],notes:[{name:'Accounting Quick Notes',desc:'All accounting concepts and formulas.',icon:'doc'},{name:'Important Ratios Sheet',desc:'All financial ratios with formulas and interpretation.',icon:'pdf'}],mcq:[{q:'The accounting equation is:',opts:['Assets = Liabilities + Capital','Assets + Capital = Liabilities','Assets = Capital - Liabilities','Liabilities = Assets + Capital'],ans:0},{q:'A balance sheet shows:',opts:['Revenue and expenses','Assets, liabilities and equity','Only cash transactions','Sales and purchases'],ans:1},{q:'Current ratio = Current Assets divided by:',opts:['Total Assets','Fixed Assets','Current Liabilities','Total Liabilities'],ans:2}]}
+};
+
+/* OPEN SUBJECT — used by dropdown items and home cards */
+let currentSubjectId = '';
+function openSubject(id) {
+  const s = subjects[id]; if (!s) return;
+  currentSubjectId = id;
+  document.getElementById('subject-title-text').textContent = s.emoji + ' ' + s.title;
+  document.getElementById('subject-code-badge').textContent = s.code + ' · ' + s.sem;
+  document.getElementById('subject-subtitle-text').textContent = s.subtitle;
+  document.getElementById('subject-meta-area').innerHTML = s.meta.map(m=>`<div class="meta-item">${m.icon} ${m.text}</div>`).join('');
+  document.getElementById('subject-info-grid').innerHTML = s.meta.map(m=>`<div class="info-card"><div class="info-val">${m.icon}</div><div class="info-label">${m.text}</div></div>`).join('');
+  document.getElementById('subject-overview-content').innerHTML = s.overview;
+  renderResources('res-assignments', s.assignments, id, 'assignments');
+  renderResources('res-pyq',         s.pyq,         id, 'pyq');
+  renderResources('res-ppt',         s.ppt,         id, 'ppt');
+  renderResources('res-notes',       s.notes,       id, 'notes');
+  renderMCQs(s.mcq);
+  switchTab('overview');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-subject').classList.add('active');
+  document.querySelectorAll('.nav-dropdown').forEach(d=>d.classList.remove('open'));
+  window.scrollTo(0,0);
+  closeMenu();
+  initReveal();
+}
+function showSubject(id){ openSubject(id); }
+
+/* DROPDOWN TOGGLE */
+function toggleDropdown(id) {
+  const dd = document.getElementById(id);
+  const isOpen = dd.classList.contains('open');
+  document.querySelectorAll('.nav-dropdown').forEach(d=>d.classList.remove('open'));
+  if (!isOpen) dd.classList.add('open');
+}
+document.addEventListener('click', function(e){
+  if (!e.target.closest('.nav-dropdown')) {
+    document.querySelectorAll('.nav-dropdown').forEach(d=>d.classList.remove('open'));
+  }
+});
+
+/* SEARCH */
+function filterCards(q) {
+  const term = q.toLowerCase().trim();
+  ['subjectGrid','subjectGrid2'].forEach(gid=>{
+    const g = document.getElementById(gid); if(!g) return;
+    g.querySelectorAll('.subject-card[data-search]').forEach(card=>{
+      const name = card.querySelector('.card-title') ? card.querySelector('.card-title').textContent.toLowerCase() : '';
+      const tags = card.dataset.search || '';
+      card.style.display = (!term || name.includes(term) || tags.includes(term)) ? '' : 'none';
+    });
+  });
+}
+
+/* NAVIGATION */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-links button').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById('nav-'+id);
+  if(nb) nb.classList.add('active');
+  window.scrollTo(0,0);
+  closeMenu();
+  initReveal();
+}
+function showSubject(id) {
+  const s=subjects[id]; if(!s) return;
+  document.getElementById('subject-title-text').textContent=s.emoji+' '+s.title;
+  document.getElementById('subject-subtitle-text').textContent=s.subtitle;
+  document.getElementById('subject-meta-area').innerHTML=s.meta.map(m=>`<div class="meta-item">${m.icon} ${m.text}</div>`).join('');
+  document.getElementById('subject-info-grid').innerHTML=s.meta.map(m=>`<div class="info-card"><div class="info-val">${m.icon}</div><div class="info-label">${m.text}</div></div>`).join('');
+  document.getElementById('subject-overview-content').innerHTML=s.overview;
+  renderResources('res-assignments',s.assignments);
+  renderResources('res-pyq',s.pyq);
+  renderResources('res-ppt',s.ppt);
+  renderResources('res-notes',s.notes);
+  renderMCQs(s.mcq);
+  switchTab('overview');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-subject').classList.add('active');
+  document.querySelectorAll('.nav-links button').forEach(b=>b.classList.remove('active'));
+  const nb=document.getElementById('nav-'+id); if(nb) nb.classList.add('active');
+  window.scrollTo(0,0); closeMenu(); initReveal();
+}
+
+/* RESOURCES */
+const iconMap={pdf:'📕',ppt:'📊',doc:'📄',mcq:'✅'};
+
+/* ── Load admin-uploaded docs from localStorage ── */
+function getAdminDocs(subjectId, tabId){
+  try{
+    const all = JSON.parse(localStorage.getItem('univault_docs')||'[]');
+    return all.filter(d=>d.subject===subjectId && d.tab===tabId);
+  }catch(e){return [];}
+}
+
+function renderResources(cid, items, subjectId, tabId) {
+  const c = document.getElementById(cid);
+  /* Merge built-in items + admin uploaded items */
+  const adminItems = getAdminDocs(subjectId||currentSubjectId, tabId||cid.replace('res-',''));
+  const adminMapped = adminItems.map(d=>({
+    name:d.name, desc:d.desc||'', icon:d.icon||'doc',
+    url:d.url||'', preview:d.preview||''
+  }));
+  const allItems = [...(items||[]), ...adminMapped];
+
+  if(!allItems.length){
+    c.innerHTML='<p style="color:#6b8499;font-size:.9rem;">No files uploaded yet. Check back soon.</p>';
+    return;
+  }
+  c.innerHTML=allItems.map(item=>`
+    <div class="resource-item reveal">
+      <div class="res-icon ${item.icon}">${iconMap[item.icon]||'📄'}</div>
+      <div class="res-info">
+        <div class="res-name">${item.name}</div>
+        <div class="res-desc">${item.desc}</div>
+        <div class="res-actions">
+          <button class="btn-preview" onclick="openPreview('${item.name.replace(/'/g,"\\'")}','${iconMap[item.icon]||'📄'}','${(item.preview||item.url||'').replace(/'/g,"\\'")}')">👁 Preview</button>
+          <button class="btn-download" onclick="downloadFile('${item.name.replace(/'/g,"\\'")}','${(item.url||'').replace(/'/g,"\\'")}')">⬇ Download</button>
+        </div>
+      </div>
+    </div>`).join('');
+  initReveal();
+}
+
+/* MCQ */
+function renderMCQs(mcqs) {
+  const c=document.getElementById('mcq-container');
+  c.innerHTML=`<h3 style="font-family:'Playfair Display',serif;color:var(--c1);margin-bottom:1.2rem;font-size:1.3rem;">Practice MCQs</h3>`;
+  mcqs.forEach((q,qi)=>{
+    c.innerHTML+=`<div class="mcq-card"><div class="mcq-q">Q${qi+1}. ${q.q}</div><div class="mcq-options">${q.opts.map((opt,oi)=>`<div class="mcq-opt" onclick="checkMCQ(this,${oi},${q.ans},${qi})" id="opt-${qi}-${oi}"><span style="font-weight:700;margin-right:.4rem;">${String.fromCharCode(65+oi)}.</span>${opt}</div>`).join('')}</div><div class="mcq-result" id="mcq-result-${qi}"></div></div>`;
+  });
+}
+function checkMCQ(el,chosen,correct,qi) {
+  document.querySelectorAll(`[id^="opt-${qi}-"]`).forEach(o=>o.style.pointerEvents='none');
+  const r=document.getElementById('mcq-result-'+qi);
+  if(chosen===correct){el.classList.add('correct');r.textContent='✅ Correct! Well done.';r.className='mcq-result show correct-msg';}
+  else{el.classList.add('wrong');document.getElementById(`opt-${qi}-${correct}`).classList.add('correct');r.textContent=`❌ Incorrect. Correct answer is ${String.fromCharCode(65+correct)}.`;r.className='mcq-result show wrong-msg';}
+}
+
+/* TABS */
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+tabId).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>{if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+tabId+"'"))b.classList.add('active');});
+  initReveal();
+}
+
+/* MODAL */
+function openPreview(name, icon, previewUrl) {
+  document.getElementById('modal-title').textContent='Preview — '+name;
+  const body = document.querySelector('.modal-body');
+  if(previewUrl && previewUrl.trim() && previewUrl !== 'undefined'){
+    body.innerHTML=`<iframe src="${previewUrl}" width="100%" height="500" style="border:none;border-radius:10px;display:block;" allowfullscreen></iframe>`;
+  } else {
+    body.innerHTML=`
+      <div class="preview-placeholder">
+        <div class="big-icon">${icon}</div>
+        <p><strong>${name}</strong><br>Upload the file to Google Drive and set a preview link to enable live preview.</p>
+        <button class="btn-download" onclick="closeModal()" style="margin-top:.5rem;padding:.6rem 1.4rem;font-size:.88rem;">Close</button>
+      </div>`;
+  }
+  document.getElementById('previewModal').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('previewModal').classList.remove('open');
+  document.querySelector('.modal-body').innerHTML=`
+    <div class="preview-placeholder">
+      <div class="big-icon" id="modal-icon">📄</div>
+      <p><strong id="modal-doc-name">Document</strong><br>Upload the file to Google Drive and set a preview link.</p>
+    </div>`;
+}
+document.getElementById('previewModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+function downloadFile(name, url){
+  if(url && url.trim() && url !== 'undefined'){
+    // Convert Google Drive view link to direct download if needed
+    let dlUrl = url;
+    if(url.includes('drive.google.com/file/d/')){
+      const match = url.match(/\/file\/d\/([^/]+)/);
+      if(match) dlUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+    }
+    const a = document.createElement('a');
+    a.href = dlUrl;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } else {
+    alert('📥 File not yet uploaded.\n\nFile: '+name+'\n\nThe admin will upload this file soon. Check back later!');
+  }
+}
+function handleSubmit(){alert('✅ Message sent! We will reply within 24 hours.');}
+
+/* HAMBURGER */
+function toggleMenu(){
+  document.getElementById('navLinks').classList.toggle('open');
+  document.getElementById('hamburger').classList.toggle('open');
+}
+function closeMenu(){
+  document.getElementById('navLinks').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+}
+
+/* SCROLL — progress bar + navbar shrink */
+window.addEventListener('scroll',()=>{
+  const scrollTop=window.scrollY||document.documentElement.scrollTop;
+  const docHeight=document.documentElement.scrollHeight-window.innerHeight;
+  const pct=docHeight>0?(scrollTop/docHeight)*100:0;
+  document.getElementById('progressFill').style.width=pct+'%';
+  const nav=document.getElementById('navbar');
+  if(scrollTop>30) nav.classList.add('scrolled');
+  else nav.classList.remove('scrolled');
+},{passive:true});
+
+/* SCROLL REVEAL */
+function initReveal(){
+  setTimeout(()=>{
+    const obs=new IntersectionObserver((entries)=>{
+      entries.forEach((e,i)=>{
+        if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),i*60);obs.unobserve(e.target);}
+      });
+    },{threshold:.08});
+    document.querySelectorAll('.reveal:not(.visible)').forEach(el=>obs.observe(el));
+  },60);
+}
+initReveal();
+</script>
+</body>
+</html>
