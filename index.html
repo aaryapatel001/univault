@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniVault — AI Coding Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+
+    <!-- HOME FLOATING BUTTON -->
+    <div id="homeFloatingBtn" onclick="go('home')" style="cursor:pointer">
+        <span class="hfb-icon">⚡</span>
+        <span class="hfb-label">Home</span>
+    </div>
+
+    <!-- STATIC STARFIELD BACKGROUND -->
+    <canvas id="starfieldBg" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none"></canvas>
+
+    <!-- THREE.JS LIGHT PILLAR CONTAINER -->
+    <div id="lightPillarWrap" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;mix-blend-mode:screen"></div>
+
+    <!-- ══════════════ NAVBAR ══════════════ -->
+    <!--#include file="pages/navbar.html" -->
+    <!-- NOTE: In production, use a build tool or server-side includes.
+         For now, the navbar HTML is included directly in this file.
+         See pages/navbar.html for the source. -->
+
+    <!-- ══════════════ PAGES ══════════════ -->
+    <!-- Each page is in its own file under pages/ directory.
+         In production, use a bundler or server-side includes.
+         For local development, all pages are loaded here. -->
+
+    <!-- Keep old nav IDs as hidden aliases -->
+    <div id="navLeft" style="display:none"></div>
+    <div id="navCenter" style="display:none"></div>
+    <div id="navRight" style="display:none"></div>
+
+    <!-- Pages are loaded from separate files -->
+    <!-- See: pages/home.html, pages/login.html, etc. -->
+    <!-- For the split version, include them here or use a build tool -->
+
+    <!-- ══════════════ SCRIPTS ══════════════ -->
+    
+    <!-- Three.js for light pillar effect -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Supabase SDK (for backend) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- App Scripts (load in order) -->
+    <script src="js/supabase-config.js"></script>  <!-- ← Backend config -->
+    <script src="js/fusion-orbit.js"></script>       <!-- Timeline animation -->
+    <script src="js/navigation.js"></script>          <!-- Page routing & theme -->
+    <script src="js/onboarding.js"></script>           <!-- Onboarding flow -->
+    <script src="js/coding.js"></script>               <!-- Code editor & timers -->
+    <script src="js/rank.js"></script>                 <!-- Rank mode -->
+    <script src="js/ui.js"></script>                   <!-- UI effects & scroll -->
+    <script src="js/auth.js"></script>                 <!-- ← Auth (connect to Supabase here) -->
+    <script src="js/semesters.js"></script>             <!-- ← Semester data (connect to Supabase here) -->
+    <script src="js/aichat.js"></script>               <!-- AI chat -->
+    <script src="js/features.js"></script>             <!-- Feature animations & contact form -->
+    <script src="js/hero-animation.js"></script>       <!-- Hello World hero effect -->
+    <script src="js/light-pillar.js"></script>         <!-- Three.js light pillar -->
+    <script src="js/starfield.js"></script>            <!-- Canvas starfield -->
+
+</body>
+</html>
